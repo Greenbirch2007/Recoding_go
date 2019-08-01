@@ -1,0 +1,10 @@
+
+
+
+# GOROOT: GO的安装路径
+export GOROOT=/usr/local/go1.12.7
+export GOPATH=/home/wo/Recoding_go/GoEnv
+export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+
+alias gos="cd /home/wo/Recoding_go/GoEnv/src"
+
