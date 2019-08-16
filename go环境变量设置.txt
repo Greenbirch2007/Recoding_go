@@ -2,9 +2,12 @@
 
 
 # GOROOT: GO的安装路径
-export GOROOT=/usr/local/go1.12.7
+export GOROOT=/usr/local/go1.12.9
 export GOPATH=/home/wo/Recoding_go/GoEnv
 export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 
 alias gos="cd /home/wo/Recoding_go/GoEnv/src"
 
+
+alias cdgo="cd /home/w/GoLand-2019.2/bin"
+alias gol="./goland.sh"

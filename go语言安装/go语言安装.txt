@@ -10,7 +10,7 @@ tar zxvf go1.12.7.linux-amd64.tar.gz
 
 解压Go安装包 go1.11.5.linux-amd64.tar.gz，解压后生成go, gocache, tmp三个文件夹
 
-sudo cp -r go /usr/local/go1.12.7
+sudo cp -r go /usr/local/go1.12.9
 移动解压后生成的go文件夹到 /usr/local/ 目录下并重命名为 go1.12.7
 
 
@@ -22,12 +22,12 @@ sudo vim /etc/profile
 Go环境变量配置如下
 
 # GOROOT: GO的安装路径
-export GOROOT=/usr/local/go1.12.7
+export GOROOT=/usr/local/go1.12.9
 # GOPATH: GO的工作路径，此处为自行创建的GoEnv目录，GoEnv下的src、pkg、bin也需自行创建
 export GOPATH=/home/wo/GoEnv
 export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 
-export GOROOT=/usr/local/go1.12.7
+export GOROOT=/usr/local/go1.12.9
 export GOPATH=/home/wo/GoEnv
 export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 
