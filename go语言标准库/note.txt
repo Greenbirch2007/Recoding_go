@@ -1,0 +1,279 @@
+
+第一章　输入输出
+
+
+io
+io/ioutil
+fmt
+bufio
+
+reader writer  seeker 
+
+whence的值，在os包中定义了相应的常量，应该使用这些常量
+
+
+close接口比较简单，只有一个close()方法，用于关闭数据流
+
+文件(os.File),归档(压缩包)，数据库连接，Socket等需要手动关闭的资源
+都实现了Closer接口
+
+实际编程中，经常讲Close方法的调用放在defer语句中
+
+其他接口
+
+ByteReader,ByteWriter
+
+读或写一个字节
+
+bufio.Reader/Writer 分别实现了io.ByteReader,io.ByteWriter
+bytes.Buffer同时实现了io.ByteReader,io.ByteWriter
+bytes.Reader实现了io.ByteReader
+strings.Reader实现了io.ByteReader
+
+ByteScanner,RuneReadere,RuneScanner
+
+可见，它内嵌了ByteReader接口(可以理解为继承了ByteReader接口)
+UnreadByte的意思是，将上一次ReadByte的字节还原，使得再次调用ReadByte
+返回的结果和上一次调用相同，
+
+SectionReader类型是一个struct(没有任何导出的字段)，实现了Read,Seek,
+ReadAt,同时，内嵌了ReaderAt
+
+
+1.2 ioutil  方便的io操作函数集
+
+NopCloser函数　ReadAll函数
+ReadFile读取整个文件的内容，
+
+TempDir,TempFile函数
+操作系统中一般都会提供临时目录，比如linux下的 tmp目录（通过os.TempDir()
+可以获取到）
+
+创建者创建的临时文件和临时目录要负责删除这些临时目录和文件
+
+Discard对应的类型(type devNull int)实现了io.Writer接口，
+同时，为了优化io.Copy到Discard,避免不必要的工作，实现了io.ReaderFrom接口
+
+1.3 fmt- 格式化io
+
+Printing
+
+占位符
+
+普通占位符
+
+%v 相应值的默认格式
+%#v
+
+%T
+%%
+
+布尔占位符
+
+
+%t
+
+整数占位符
+
+%b
+%c
+%d
+%o
+%q
+%x
+%X
+%U
+
+
+浮点数和复数的组成部分(实部和虚部)
+
+%b
+%e
+%f
+%g
+%G
+
+字符串与字节切片
+
+%s
+%q
+%x
+%X
+
+指针
+
+%p
+
+
+
+宽度和精度的控制格式以Unicode码点为单位
+
+Scanning 一组类似的函数扫描已经格式化的文本来产生值。
+
+scan,scanf,scanlｎ
+
+
+Print序列函数
+
+Sprint,Sprintf,Sprintln是格式化内容为string类型，而并不输出到某处，
+需要格式化字符串病返回时，可以用次组函数
+
+Stringer接口
+
+如果格式化输出某种类型的值，只要它实现了String()方法，
+那么会调用String()方法进行处理
+
+Formatter接口　由带有定制的格式化器的值所实现。Format的实现可调用
+Sprintf或Fprintf(f)等函数带来生成其输出
+
+
+通过实实现Formatter接口可以做到自定义输出格式（自定义占位符）
+
+fmt.State是一个接口，由于Format方法是被fmt包调用的，它内部会实例化好一个
+fmt.State接口的实例，
+
+GoStringer接口
+
+scan序列函数
+
+Scanner,ScanState接口
+
+任何实现了Scan方法的对象都实现了Scanner接口，Scan方法会从输入读取数据
+并将处理结果存入接收端，接收端必须是有效的指针。
+
+ScanState是一个交给用户定制的Scanner接口的参数的接口。
+Scanner接口可能会进行一次一个字符的扫描或要求ScanState去探测下一个空白
+分隔的token.
+
+1.4 bufio --缓存io
+
+1.4.1 Reader类型和方法
+
+bufio.Reader结构包装了一个io.Reader对象，提供缓存功能，同时实现了io.Reader接口
+
+
+1.4.1.1　实例化
+
+bufio包提供了两个实例化bufio.Reader对象的函数：
+NewReader,NewReaderSize
+
+1.4.1.3 Peek方法
+
+1.4.2 Scanner类型和方法
+
+１．４．２．１　SplitFunc类型和实例
+
+1.4.2.2 Scanner的实例化
+
+Scanner没有到处任何字段，而它需要有外部的io.Reader对象
+我们不能直接实例化Scanner对象，必须通过bufio包提供的实例化函数来实例化
+实例化函数签名以及内部实现
+
+1.4.2.2  Scanner的方法
+
+Split方法为Scanner实例设置分词行为。由于
+Scanner实例的默认split总是ScanLines.如果我们想要用其他的split,可以通过
+Split方法做到
+
+1.4.2.3 Scanner使用示例
+读取文件中的数据，一次读取一行。
+
+
+1.4.3 Writer类型和方法
+
+bufio.Writer 结构包装了一个io.Writer对象，提供缓存功能，同时实现了io.Writer接口
+
+
+Writer结构没有任何导出的字段
+
+如果在写数据到Writer的时候出现了一个错误，不会再允许有数据被写进来了，并且所有随后的写操作都会
+返回该错误
+
+
+１．４．３．１　实例化
+
+１．４．３．２　Available,Buffered方法
+前者用户获取缓存中还未使用的字节数(缓存大小－字段n的值)
+后者方法获取写入当前缓存中的字节数(字段n的值)
+
+
+Flush方法　　将缓存中的所有数据写入底层的io.Writer对象中。
+使用bufio.Writer时，在所有的Write操作完成之后，应该调用Flush
+方法使得缓存都写入io.Writer对象中
+
+
+ReadWriter类型和实例化
+
+
+ReadWriter结构存储了bufio.Reader和bufio.Writer类型的指针(内嵌)，
+它实现了io.ReadWriter结构
+
+ReadWriter的实例化可以跟普通结构类型一样，也可以通过调用
+
+bufio.NewReadWriter函数来实现：只是简单的实例化ReadWriter
+
+
+第二章　文本
+
+几乎任何程序都离不开文本(字符串)。go中string的内置理类型，同时它与普通的
+slice类型有相似的性质，
+strings包提供了很多操作字符串的简单函数，通常一般的字符串操作需求都可以
+在这个包中找到
+
+strconv包提供了基本数据类型和字符串之间的转换
+
+进行复杂的文本处理要用正则表达式。regexp包提供了正则表达式功能
+
+go代码使用UTF-8编码，同时标识符支持Unicode字符。
+
+2.1  strings -字符串操作
+
+字符串长度
+求子串
+是否存在某个字符或子串
+子串出现的次数(字符串匹配)
+字符串分割(切分)为[]string
+字符串是否有某个前缀或后缀
+字符或子串在字符串中首次出现的位置或最后一次出现的位置
+通过某个字符串将[]string连接起来
+字符串重复几次
+字符串中子串替换
+大小写转换
+Trim操作
+
+由于string类型可以是看成是一种特殊的slice类型，因此获取长度可以用内置的函数len
+同时支持切片操作。子串获取很容易
+
+
+是否存在某个字符或子串
+
+
+子串出现次数(字符串匹配)
+
+在数据结构与算法中，有集中字符串匹配算法
+
+
+朴素匹配算法
+KMP算法
+Rabin-Karp算法
+Boyer-Moore算法
+
+
+字符串分割为[]string
+
+Fields,FieldsFunc,Split,SplitAfter,SplitN,SplitAfterN
+
+这两个函数的签名为
+
+
+func Fields(s string) []string
+func FieldFunc(s string,f func(rune) bool) []string
+
+
+
+
+
+
+
+
+
