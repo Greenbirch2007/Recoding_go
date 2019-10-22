@@ -1,6 +1,9 @@
 package main
 
 import "fmt"
+
 func main(){
-	fmt.Printf("hello,world!\n")
+	var a int
+	fmt.Printf(" = %d\n",a)
+
 }
