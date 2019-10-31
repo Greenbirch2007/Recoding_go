@@ -1051,6 +1051,258 @@ append()和copy()函数
 
 下面来定义一个Path类型，这个Path代表一个线段的结合，并且也给
 这个Path定义一个叫做Distance的方法。
-p104
 
+
+go 基于指针对象的方法
+
+方法表达式
+
+和方法"值"相关的还有方法表达式。当调用一个普通的函数相比，我们必须要用选择器(p.Distance)语法来指定方法的接收器
+
+当T是一个类型时，方法表达式可能会写作T.f或(*T).f,会返回一个函数"值"，这种函数会将其第一个参数用作接收器，
+所以可以用通常(或不写选择器)的方式对其进行调用：
+
+// 这个Distance实际上是指定了Point对象为接收器的一个方法func (p Point) Distance()
+
+//但通过Point.Distance 得到的函数需要比实际的Distance方法多一个参数
+
+//即其需要用第一个额外参数指定接收器，后面排列Distance方法的参数
+
+//看起来本书中函数和方法的区分有没有接收器，而不像其他语言那样是指没有返回值
+
+
+当你决定一个变量来决定调用同一类型的哪个函数时，方法表表达式就是很有用了
+
+可以根据选择来调用接收器各不相同的方法。
+
+变量op代表Point类型的addition或substraction方法，PathTransalteBy方法会为其Path数组中的每一个Point来调用对应的方法：
+
+
+封装
+
+package main
+import "fmt"
+
+type data struct {
+	val int 
+}
+
+
+//封装的时候一定要是基于指针类型的方法，否则不是同一个对象
+
+func (p_data* data) set(num int) {
+	p_data.val = num
+}
+
+func (p_data* data)show(){
+	fmt.Println(p_data.val)
+}
+
+
+func main(){
+	p_data := &data{4}
+	p_data.set(5)
+	p_data.show()
+
+}
+
+
+继承
+
+package main
+
+import "fmt"
+
+
+type parent struct {
+	val int
+}
+
+type child struct {
+	parent
+	num int
+}
+
+func main() {
+	var c child
+	c = child{parent{1},2}
+	fmt.Println(c.num)
+	fmt.Println(c.val)
+}
+
+
+多态
+
+
+package main
+
+import "fmt"
+
+type act interface {
+	write()
+}
+
+type xiaoming struct {
+	}
+
+type xiaomfang struct {
+	}
+func (xm *xiaoming) write(){
+	fmt.Println("xiaoming write")
+}
+
+func (xf *xiaofang) write(){
+	fmt.Println("xiaofang write")
+}
+
+
+func main(){
+	var W act;
+	xm := xiaoming{}
+	xf := xiaofang{}
+
+	W = & xm
+	W.Write()
+	W = &xf
+	W.Write()
+}
+
+
+接口
+
+接口类型是对其它类型行为的抽象和概括：
+因为接口类型不会和特定的实现细节绑定在一起，通过这种抽象的方式我们可以让我们的函数更加灵活和更具有适应能力
+
+很多面向对象的语言都有相似的接口概念，但go语言中接口类型的独特指出在于它是满足隐式实现的。
+我们没有必要对于给定的具体类型定义所有满足的接口类型；
+简单地拥有一些必需的方法即可
+
+这种设计可以让你创建一个新的接口类型满足已经存在的具体类型却不会去改变这些类型的定义
+当我们使用的类型来自于不受我们控制对的包时这种设计尤其有用
+
+
+go语言提供了另外一种数据类型即接口，它吧所有的具有共性的方法定义在一起，任何其他类型会主要实现了这些方法就是
+实现了这个接口
+
+
+
+//定义接口
+
+
+type interface_name interface {
+	method_name1 [return_type]
+
+}
+
+//定义结构体
+
+type struct_name struct {
+	// variables
+}
+
+
+// 实现接口方法
+
+func (struct_name_variable struct_name ) method_name1()[return_type] {
+	//方法实现
+}
+
+
+func (struct_name_variable struct_name) method_namen()[return_type]{
+	//方法实现
+}
+
+
+
+2. 配合switch使用
+
+var t interface{}
+t = functionOfSomeType()
+switch t := t.(type) {
+default:
+	fmt.Println("unexpected type %T",t) // %T prints whate ver type t has
+case bool:
+	fmt.Println("boolean %t\n",t) // t has type bool
+case int:
+	fmt.Println("integer %d\n",t) // t has type int
+case *bool:
+	fmt.Println("pointer to boolean %t\n",*t) // t has type *bool
+case *int:
+	fmt.Println("point to integer %d\n",t) // t has type *int
+}
+
+
+func sqlQuote(x interface{}) string{
+	if x==nil {
+		return "NULL"
+}	else if _,ok := x.(int); ok{
+	return fmt.Sprintf("%d",x)
+} else if _, ok := x.(uint); ok {
+} else if b, ok := x.(bool); ok{
+	if b {
+		return "TRUE"
+}
+	return "FALSE"
+} else if s,ok := x.(string); ok{
+	return sqlQuoteString(s) // (not shown)
+} else{
+	panic(fmt.Sprintf("unexpected type %T %v",x,x))
+}
+}
+
+文件操作
+
+相关api介绍
+
+建立File内存地址api
+
+//返回File的内存地址，错误信息，通过os库调用
+
+func Create(name string) (file *File,err Error)
+
+//返回文件的内存地址，通过os库调用
+
+func NewFile(fd int,name string) *File
+
+打开文件api
+
+
+//返回File的内存地址，错误信息，通过os库调用
+
+func Open(name string)(file *File,err Error)
+
+//返回File的内存地址，错误信息，通过os库调用
+func OpenFile(name string,flag int,perm unit32)(file *File,err Error)
+
+写文件api
+
+
+//写入一个slice,返回写的个数，错误信息，通过File的内存地址调用
+
+func (file *File)Write(b []byte)(n int,err,Error)
+
+//从slice的某个位置开始写入，返回写的个数，错误信息，通过File的内存地址调用
+
+func (file *File)WriteAt(b []byte,off int64)(n int ,err Error)
+
+
+//写入一个字符串，返回写的个数，错误信息，通过File的内存地址调用
+
+func (file *File) WriteString(s string)(ret int,err Error)
+
+
+读文件api
+
+//读取一个slice,返回读的个数，错误嘻嘻，通过File的内存地址滴啊用
+
+func (file *File) Read(b []byte)(n int,err Error)
+
+//从slice的某个位置开始读取，返回读到的个数，错误信息，通过File的内存地址调用
+
+func (file *File) ReadAt(b []byte,off int64)(n int,err Error)
+
+
+删除文件api
+
+p130
 
