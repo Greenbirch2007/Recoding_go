@@ -1304,5 +1304,14 @@ func (file *File) ReadAt(b []byte,off int64)(n int,err Error)
 
 删除文件api
 
-p130
+// 传入文件的路径来删除文件，返回错误个数
+
+
+func Remove(name string)Error
+
+
+写文件的实例代码
+
+读文件的实例代码
+p134
 
