@@ -1313,5 +1313,75 @@ func Remove(name string)Error
 写文件的实例代码
 
 读文件的实例代码
-p134
+
+
+使用ioutil 库
+
+遍历文件夹
+
+
+
+go与JSON
+
+JavaScript对象表示法(JSON)是一种用于发送和接收结构化信息的标准协议。
+
+go语言中，对于标准格式的编码和解码都有良好的支持，
+标准库中的encoding/json,encoding/xml,encoding/asn1等包提供
+支持这类包都有着相似的API
+
+
+JSON是对JavaScript中各种类型的值(字符串，数字，布尔值，对象)
+
+Unicode文本编码。它可以用有效可读的方式表示基础数据类型和数组，slice,
+结构体和map等聚合数据类型
+
+
+
+基本的JSON类型有数字(十进制或科学计数法)，布尔值(true或false)
+字符串，其中字符串是以双引号包含的Unicode字符序列，支持和go语言
+类似的反斜杠转义特性，不过JSON使用的是\Uhhh转义数字来表示一个UTF-16
+编码(utf-16,utf-8一样是变长的编码，有些Unicode码点较大
+的字符需要用4个字节表示；而且utf-16还有大端和小端的问题)
+而不是go语言的rune类型
+
+
+
+这些基础类型可以通过JSON的数组和对象类型进行递归组合
+
+
+一个JSON数组是一个有序的值序列，写在一个方括号中并以逗号分隔；
+一个JSON数组可以用于编码Go语言的数组和slice
+
+一个JSON对象是一个字符串到值的映射，写成一系列的name:value对形式，
+用花括号包含并以逗号分隔；JSON的对象类型可以用于编码go语言的map类型
+(key 类型是字符串)和结构体
+
+
+boolean true
+number -273.15
+string "She said \" Hello,BF\""
+array   ["gold","silver","bronze"]
+object {
+	"year":1980,.
+	"event":"archery",
+	"medals":["gold","silver","bronze"]}
+
+
+考虑一个应用程序，该程序负责收集各种电影评论并提供反馈功能。
+
+
+它的Movie数据类型和一个典型的表示电影的值列表如下
+
+(在结构体声明中，Year和Color成员后面的字符串面值是结构体成员Tag:)
+
+为了便于阅读
+json.MarshalIndent函数将产生整齐缩进的输出
+该函数有两个额外的字符串参数用于表示每一行输出的前缀和每一层级的缩进
+
+
+在编码时，默认使用go语言结构体的成员名字作为JSON的对象。
+只有导出的结构体成员才会被编码，这也是我们为什么选择
+用大写字母开头的成员名称。
+
+p142
 
