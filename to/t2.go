@@ -1,15 +1,24 @@
-
-package main
-
-import "fmt"
-import "os"
-
-
-func main(){
-	var s,sep string
-	for i := 1;i<len(os.Args);i++{
-		s += sep + os.Args[i]
-		sep = ""
+package main(){
+	go spinner(100* time.Millsecond)
+	const n =45
+	fibN := fib(b) //slow	
+	fmt.Printf("\rFibonacci(%d) = %d\n",n,fibN)
+	
 }
-	fmt.Println(s)
+
+
+func spinner(delay time.Duration){
+	for{
+		for _, r := range '-\|/'{
+			fmt.Printf("\r%c",r)
+			time.Sleep(delay)
+}
+}
+}
+
+func fib(x int )int {
+	if x<2 {
+		return x
+}
+	return fib(x-1) + fib(x-1)
 }
