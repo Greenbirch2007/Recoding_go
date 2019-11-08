@@ -1497,7 +1497,179 @@ time包里定义了很多标准时间格式，比如time.RFC1123
 
 可以用telnet来实现，用net.Dial就可以简单地创建一个TCP连接
 
-p152
+案例：并发的echo服务
+
+clock服务器每一个连接都会把一个goroutine.
+下面会创建一个echo服务器，这个服务在每个连接中会有很多goroutine.
+大多数echo服务仅仅会返回他们读取到的内容
+
+func handleConn(c net.Conn){
+	io.Copy(c,c) // NOTE:ignore
+	c.Close()
+}
+
+一个echo服务应该模拟一个实际的echo的"回响动"，并且一开始要用大写HELLO
+来表示"声音很大"，之后就经过一小段延迟返回一个有所缓和的Hello,
+然后一个全小写字母的hello表示声明渐渐变小直至小时
+
+
+
+服务端代码
+
+客户端代码
+
+这样启动服务器，再启动客户端，输入几句话，服务端会为每句话响应３次，
+分别为大写，正常，小写
+
+注意客户端的第三次喊话在前一个喊话处理完成之前一直没有被处理，
+真实场景的响应应该是会由三次喊话的回声组合而成的。
+为了模拟真实世界的回响，需要更多的goroutine来做这件事。这样我们
+就再一次地需要go这个关键词，
+
+
+服务器代码
+
+func handleConn(c net.Conn){
+	//input 是一个Scanner类型，该类型可以通过Scan方法依次迭代
+	//从io设备中读数据，直到eof为止
+	input := bufio.NewScanner(c)
+	//　scan方法　如果缓冲有数据都会返回true,否则返回false
+	for input.Scan(){
+		// 如果有数据　input.Text()可以取出
+		go echo(c,input.Text(),1*time.Second)
+	}
+
+	c.Close()
+}
+
+
+go后面的函数的参数会在go语句自身执行时被求值;因此input.Text()
+会在main goroutine中被求值。
+现在回响是并发并且会按时间来覆盖掉其它响应了的：
+让服务使用并发不只是处理多个客户端的请求，甚至在处理单个连接时
+也可能会用到，在使用go关键词的同时，
+需要慎重考虑net.Conn中的方法咋并发地调用时是否安全，
+事实上对于大多数类型来说也确实不安全
+
+
+runtime
+
+
+runtime.Gosched()用于让出CPU时间片，
+
+类似接力赛，A跑了一段代码碰到runtime.Gosched()就把接力棒交给B
+A休息，Ｂ继续跑
+
+
+go中的goroutins并不是同时在运行。事实上，如果没有在代码中通过
+runtime.GOMAXPROCS(n)　其中n为整数
+
+
+指定使用多核的话，goroutins都是在一个线程里的，它们之间通过不停
+的让出时间片轮流运行，达到类似同时运行的效果
+
+当一个goroutine发生阻塞，go会自动地八与该goroutine处于同一系统线程的
+其他goroutines转移到另一个系统线程上去，以使得这些goroutines不阻塞
+
+没有打印出数字，可以看到goroutine没有获得机会运行
+
+在main函数中加上runtime.Goshced()
+最终goroutine获得了运行机会，打印出了数字
+
+
+go的goroutine是怎么实现的
+
+
+go runtime的调取器
+
+在了解go的运行时的scheduler之前，需要了解为什么需要它，
+因为我们可能会认为，OS内核不是已经有一个线程scheduler了吗？
+
+POSIX的方案在很大程度上是对Unix process进场模型的一个逻辑描述
+和扩展.Thread有自己的信号掩码，CPU affinity等
+很多特征对于Go程序来说都是累赘，尤其是context上下文切换的耗时
+另一个原因是go的垃圾回收需要所有的goroutine停止，使得呢在一个一致的状态
+垃圾回收的时间点是不确定的，如果依靠OS自身的scheduler来调度，
+那么会有大量的先传给你需要停止工作
+
+
+单独的开发一个go的调度器，可以使其知道在什么时候内存状态是一致的，
+当开始垃圾回收时，运行时只需要为但是正在CPU核上运行的那个线程
+等待即可，而不是等待所有的线程
+
+用户空间线程和内核空间线程之间的映射关系有:N:1 ，１：１，Ｍ：Ｎ
+
+Ｎ:1 ,多个(N)用户线程始终在一个内核线程上跑，context上下文切换
+确实很快，但是无法真正的利用内核
+
+1:1,一个用户线程就只在一个内核线程上跑，这是可以利用多核，但是上下文
+switch很慢
+
+m:n，　多个goroutine在多个内核线程上跑，这个看似可以集齐上面两者的优势
+但是无意增加了调度的难度
+
+
+go的调度器内部都有三个重要的结构:M,P,S
+
+M:代表真正的内核OS线程，和POSIX里的thread差不多，真正干活的
+人，在内核空间有一个单独的PCB控制块
+
+
+P:代表调度的上下文，可以把它看做一个局部的调度器，使GO代码在一个
+线程上跑，它是实现从n:1到n:m映射的关键
+
+G:代表一个goroutine，它有自己的栈，instruction pointer和其他信息
+(正在等待的channel等)，用于调度
+
+有２个物理线程M,每一个Ｍ都拥有一个context(P),每一个也都有一个正在运行的
+goroutine
+
+
+P的数量可以通过GOMAXPROCS()来设置，它其实也就代表了真正的并发度，即有
+多少个goroutine可以同时运行
+
+
+有一些goroutine并没有运行，而是由于ready的就绪态，正在等待被调度。
+P位置着这个队列(称之为runqueue)
+
+go语言里。启动一个goroutine很容易：go function 就行，
+所以每有一个go语句被执行，runqueue队列就在其末尾加入一个
+
+goroutine,在下一个调度点，就从runqueue中取出(如何
+决定取哪个goroutine?)一个goroutine执行
+
+为何要维护多个上下文P?因为当一个OS线程被阻塞时，P也可以转而投奔另一个OS线程
+
+
+当一个OS线程MO陷入阻塞时，P转而在OS线程M1上运行。
+调度器保证有足够的线程来运行所以的contextP
+
+
+m1　可能是被创建，或从线程缓存中取出
+
+
+当MO返回时，它必须尝试取得一个context P 来运行goroutine,
+一般情况下，它会从其他的OS线程那里steal偷一个context过来
+
+
+如果没有偷到的话，它就把goroutine放在一个global runqueue里，然后自己就去
+睡觉(放入线程缓存里)
+contexts们也会周期性的检查global runqueue,否则　global runqueue
+上的永远无法执行
+
+
+另一种情况是Ｐ所分配的任务G很快被执行完了(分配不均)，这就导致了一个上下文
+Ｐ闲置而系统却依然忙碌。
+但如果global runqueue没有任务G了，那么P就不得不从其他的上下文Ｐ那里
+拿一些G来执行。
+一般来说，如果上下文P从其他的上下文P那里要偷一些任务的话，一般
+就偷"run queue"的一半，这就确保了每个OS线程都能充分的使用
+
+
+
+go channel 详解
+
+p177
 
 
 

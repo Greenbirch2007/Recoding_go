@@ -1,15 +1,21 @@
 package main
 
 import "fmt"
-
-const (
-	a = "abc"
-	b = len(a)
-	c = unsafe.Sizeof(a)
-)
+import "runtime"
 
 
-func main()
-{
-	println(a,b,c)
+func say(s string){
+	for i := 0;i <2;i++{
+		runtime.Gosched()
+		fmt.Println(s)
 }
+}
+
+func main(){
+	go say("world")
+	say("hello")
+
+}
+
+
+
