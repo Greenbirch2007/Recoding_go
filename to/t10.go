@@ -1,29 +1,33 @@
 package main
 
-import "fmt"
+
+import (
+	"fmt"
+	"time"
+)
 
 
 func main(){
-	var a int =21
-	var b int =10
-	var c int 
+	naturals := make(chan int)
+	squares := make(chan int)
+	
+	go func(){
+	  	for x :=0;x <5; x++{
+			naturals <- x
+			time.Sleep(1*time.Second)
+}
+	close(naturals)
+} ()
 
-	c = a+b
-	fmt.Printf("第一行　-c 的值为%d \n",c)
+go func(){
+	for x := range naturals{
+			squares <- x *x
+}
+	close(squares)
+}()
 
-	c = a-b
-	fmt.Printf("第二行　-c 的值为%d \n",c)
-	c = a*b
- 	fmt.Printf("第三行　-c 的值为%D \n",c)
-
-	c = a / b
-	fmt.Printf("第四行 -c 的值为%d\n",c)
-
-	c = a%b
-	fmt.Printf("第五行　-c 的值为%d \n",c)
-
-	a++
-	fmt.Printf("第六行 -c 的值为%d \n",a)
-	a--
-	fmt.Printf("第七行 -c 的值为%d \n",a)
+for x := range squares {
+	fmt.Println(x)
+}	
+	fmt.Println("done!")
 }
