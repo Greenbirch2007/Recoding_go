@@ -1,8 +1,15 @@
 package main
 
-
 import "fmt"
 
-func main(){
-	fmt.Print("使用新的go编辑器\n")
+func main()  {
+		var a int =10
+
+		for a<20{
+			if a==15 {
+			a = a+1
+			continue
+		}
+		fmt.Print("a的值为 %d \n",a)
+		a++}
 }
