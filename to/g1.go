@@ -1,6 +1,11 @@
 package main
 
-import ("fmt"
+import "fmt"
+
+import (
+	_"github.com/go-sql-driver/mysql"
+	"database/sql"
+	"fmt"
 )
 
 func main()  {
