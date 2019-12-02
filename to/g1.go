@@ -1,26 +1,29 @@
 package main
 
-import "fmt"
-
-//声明全局变量
-
-
-//函数定义－两数字相加
-
-func sum(a,b int) int  {
-	fmt.Printf("sum()函数中a = %d\n",a)
-	fmt.Printf("sum()函数中b = %d\n",b)
-	return a +b
-}
+import ("fmt"
+)
 
 func main()  {
-	//main函数中声明巨变
-	var a int =10
-	var b int = 20
-	var c int = 0
+	nums := []int {2,3,4}
+	sum := 0
+	for _,num := range nums{
+		sum += num
+	}
 
-	fmt.Printf("main()函数中a=%d\n",a)
-	c = sum(a,b)
-	fmt.Printf("main()函数中c=%d\n",c)
+	fmt.Println("sum:",sum)
 
+	for i,num := range nums{
+		if num == 3{
+			fmt.Println("index:",i)
+		}
+	}
+
+	kvs := map[string]string{"a":"apple","b":"banana"}
+	for k,v := range kvs{
+		fmt.Printf("%s -> %s \n",k,v)
+	}
+
+	for i,c := range  "go"{
+		fmt.Println(i,c)
+	}
 }
