@@ -715,6 +715,179 @@ go语言中range关键字用于for循环中迭代数组(array)
 
 go语言Map(集合)
 
-Map是一种无序的键值对的集合。Map最重要的一点可以通过key来
-快速检索
+Map是一种无序的键值对的集合。Map最重要的一点可以通过key来快速检索
+数据，key类似于索引，指向数据的值
+
+
+Map是一种集合，可以像迭代数组和切片那样迭代它。
+Map是无序的，无法决定它的返回顺序，这是因为Map
+是使用hash来实现的
+
+定义Map
+
+可以定义内建函数make也可以使用map关键字来定义Map
+
+//声明变量，   默认map是nil
+
+var map_variable map[key_data_type] value_data_type
+
+//使用make 函数
+
+
+map_variable := make(map[key_data_type]value_data_type)
+
+
+如果不初始化map,那么就会创建一个nil map
+nil map 不能用来存放键值对
+
+delete()函数
+
+delete()函数用于删除集合的元素，参数为map和其对应的key
+
+
+go语言递归函数
+
+递归，就是在运行的过程中调用自己
+
+func recursion(){
+	recursion()//的函数调用自身
+}
+
+func main(){
+	recursion()
+}
+
+
+递归在解决数学问题上很有用，比如计算阶乘，生成菲薄拿捏数列
+
+go语言类型转换
+
+类型转换用于将一种数据类型的变量转换为另外一种类型的变量。
+go语言类型转换基本格式：
+
+type_name(expression)
+
+type_name为类型，expression为表达式
+例子中将整型转化为浮点型，并计算结果，将结果赋值给浮点型变量
+
+
+go语言提供了另外一种数据类型即接口，它把所有的具有共性的方法定义在一起，
+任何其他只要实现了这些方法就是实现了这个接口
+
+// 定义接口
+
+type interface_name interface{
+	method_name1 [return_type]
+
+
+}
+
+
+定义结构体
+
+type struct_name struct{
+	//variables
+}
+
+
+//实现接口方法
+
+func (struct_name_variable struct_name)method_name1()[return_type]{
+/方法实现}
+
+
+func (struct_name_variable struct_name)method_name()[return_type]{
+//方法实现}
+
+定义了一个接口Phone，接口里面有一个方法call()
+在main函数里面定义了一个Phone类型变量，并分别为之赋值NokiaPhone和IPhone
+然后调用call()方法
+
+
+go语言的错误合理
+
+go语言通过内置的错误接口提供非常简单的错误处理机制
+
+error类型是一个接口类型
+
+type error interface {
+	Error() string
+}
+
+
+可以在编码中通过实现error接口类型来生成错误信息
+函数通常在最后的返回值中返回错误信息，使用errors.New可返回一个错误信息
+
+在调用Sqrt的时候传递一个负数，然后就得到non-nil的error对象，
+将此对象与nil比较，结果为true,
+所以fmt.Println(fmt包在处理error时会调用Error方法)被调用
+以输出错误，
+
+go语言支持并发，只需要通过go关键字来开启gorountine即可
+
+goroutine是轻量级线程，goroutine的调度是由Golang运行是进行管理的
+goroutine 语法格式：
+go 函数名(参数列表)
+
+go f(x,y,x)
+
+
+开启一个新的goroutine:
+f(x,y,z)
+
+go允许使用go语句开始一个新的运行期线程，即gorountie
+
+以一个不同的，新创建的goroutine来执行一个函数。
+同一个程序中的所有goroutine共享一个地址空间
+
+
+输出的结果没有固定先后顺序，因为它们是两个goroutine在执行
+
+通道(channel)
+
+通道(channel)是用来传递数据的一个数据结构
+通道可用于两个goroutine之间通过传递一个指定类型的值来同步运行和通讯。
+操作符<-用于指定通道的方向，发送或接收。
+如果未指定方向，则为双向通道
+
+ch <- v // 把v发送到通道 ch
+v :- <- ch // 从ch接收数据 ，并把值赋给v
+
+声明一个通道很简单，使用chan关键字接口，通道在使用前必须先创建
+
+ch := make(chan int)
+
+
+注意：默认情况下，通道是不带缓冲区的。
+发送端发送数据，同时必须又接收端相应的接收数据
+
+实例通过两个goroutine来计算数字之和，在goroutine完成计算后，
+它会计算两个结果之和
+
+通道缓冲区
+
+通道可以设置缓冲区，通过make的第二个参数指定缓冲区大小
+
+ch := make(chan int,100)
+
+带缓冲区的通道允许发送端的数据发送和接收端的数据获取处于异步状态，
+发送端发送的数据可以放在缓冲区里面，可以等待接收端去获取数据，而不是立刻
+需要接收端去获取数据
+
+不顾由于缓冲区的大小是有限的，所以还是必须有接收端来接收数据的，
+否则缓冲区一满，数据发送端就无法再发送发送数据了
+注意，如果通道不带缓冲，发送方会阻塞直到接收方从通道中接收了值。
+如果通道带缓冲，发送方则会阻塞直到发送的值被拷贝到
+缓冲区内；如果缓冲区已满，则意味着需要等待直到某个接收方获取的
+一个值。接收方在有值可以接收之前会一直阻塞
+
+go遍历通道与关闭通道
+go通过与range关键字来实现遍历读取到的数据，类似于与数组或切片
+
+v,ok := <-ch
+
+如果通道接收不到数据后ok就为false,这时通道就可以使用close()函数来关闭
+
+
+
 
