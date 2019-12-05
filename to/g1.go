@@ -1,19 +1,13 @@
 package main
 
-//导入系统包
-import (
-	"flag"
-	"fmt"
-)
+import "fmt"
+func main() {
+	var team [3] string
+	team[0] = "hammer"
+	team[1] = "soldier"
+	team[2] = "mum"
 
-//定义命令行参数
-
-var mode = flag.String("mode","","porsdaffa")
-
-func main()  {
-	// 解析命令行参数
-	flag.Parse()
-
-	//输出命令行采纳数
-	fmt.Println(*mode)
+	for k,v := range team{
+		fmt.Println(k,v)
+	}
 }
