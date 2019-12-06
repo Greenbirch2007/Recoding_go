@@ -1,13 +1,21 @@
 package main
 
 import "fmt"
-func main() {
-	var team [3] string
-	team[0] = "hammer"
-	team[1] = "soldier"
-	team[2] = "mum"
 
-	for k,v := range team{
-		fmt.Println(k,v)
+
+
+func main()  {
+	c := make(chan int)
+
+
+	go func(){
+		c <- 1
+		c <- 2
+		c <- 3
+		close(c)
+
+	}()
+	for v := range c{
+		fmt.Println(v)
 	}
 }
