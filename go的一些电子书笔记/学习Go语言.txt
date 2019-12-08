@@ -1,0 +1,244 @@
+
+
+学习Go语言
+
+
+go的前身来自于Inferno。Inferno包含了一个叫做Limbo的语言
+
+Limbo是用于开发运行在小型计算机上的分布式应用的编程语言。它支持模块化编程，
+编译器和运行时的强类型检查，进程内基于具有类型的channel通讯，原子性垃圾收集，和简单
+的抽象数据类型。它被设计用于即便是没有永健内存保护的小型设备上，也能安全运行
+
+go从Limbo继承的另一个特性是channel,
+
+channel是用于向系统中其他代理发送和接收特定类型对象的通讯机制。
+channel可以用于本地进程间通讯；用于连接到命名的目的地的库方法。
+两种情况都是直接发送和接收操作的
+
+使用channel与其他进程进行通讯叫做"通讯序列化过程"(Communicating Sequential Processes-CSP)
+
+GO是第一个实现了简单的并行开发，且跨平台的类c语言
+
+
+基础
+
+go的特点
+
+1.并行
+
+go让函数很容易成为非常轻量的线程。这些线程在go中叫做goroutine
+
+2.channel
+	这些goroutines之间的通讯由channel完成
+
+3.编译很快，执行也很快
+
+4.安全
+
+	当转换一个类型到另一个类型的时候需要显式的转换并遵循严格的规则
+	go有垃圾收集，在go中无须free(),语言会处理一切
+
+
+5.标准格式化
+
+6. 类型后置
+
+	类型在变量名的后面， var a int
+
+7.UTF-8
+	任何地方都是UTF-8的，包括字符串以及程序代码
+
+变量，类型和保留字
+
+func用于定义函数和方法
+return用于从函数返回
+go用于并行
+select 用于选择不同类型的通讯
+struct用于抽象数据类型
+goto，用于跳转到一定是当前函数内定义的标签
+
+for init;condition;post{}
+for condition{}
+for {}
+
+利用break可以提前退出循环，break终止当前的循环
+
+range，用于循环。可以在slice,array,string,map,channel
+range是个迭代器，当被调用的时候，从它循环的内容中返回一个键值对。
+基于不同的内容，range返回不同的内容
+
+当对slice或array做循环时，range返回序号作为键，这个序号对应的
+内容作为值
+
+switch,表达式不必是常量或整数，执行的过程从上至下，直到
+找到匹配项，而如果switch没有表达式，它会匹配true
+
+用default可以指定当前其他所有分支都不匹配的时候的行为
+
+
+内建函数
+
+预定义了少数函数，这意味着不需引用任何包就可以使用它们
+
+close new panic complex delete make
+recover real len append print imag 
+cap  copy println
+
+
+
+close,用于channel通讯。使用它来关闭channel
+
+delete ,用于在map中删除实例
+len和cap，可用于不同的类型，len用于返回字符串,slice,数组的长度
+
+
+new 用于各种类型的内存分配
+make 用于内建类型(map,slice,channel)的内存分配
+
+copy，用于复制slice
+
+append,用于追加slice
+
+panic,recover,用于异常处理机制，恐慌与恢复
+
+print,println是底层打印函数，可以在不引入fmt包的情况下使用，它们主要用于调试
+complex,real,imag全部用于处理复数
+
+array,slices,map
+
+可以利用array在列表中进行多个值的排序，或使用更加灵活的：slice,
+字段或哈希类型同样可以使用，叫做map
+
+
+array由[n]<type>定义，n标示array的长度，而<type>标示希望存储的内容的类型
+对array的元素赋值或索引是由方括号完成的
+
+
+slice与array接近，但是在新的元素加入的时候可以增加长度。
+slice总是指向底层的一个array.slice是一个指向array的指针，这是其与array不同的地方；
+slice是引用类型，这意味着当赋值某个slice到另外一个变量，两个引用会指向同一个array.
+例如，如果一个函数需要一个slice参数，在其内对slice元素的修改
+也会体现在函数调用者中，这和传递底层的array指针类似
+
+slice总是与一个固定长度的array成对出现。其影响slice的容量和长度
+
+函数append向slices追加零值或其他x值，并且返回追加后的新的，与s有相同类型的slice.
+如果s没有足够的容量存储追加的值，
+append分配一个足够大的，新的slice来存放原有slice的元素和追加的值。
+返回的slice可能指向不同的底层array
+
+
+函数copy从源slice src复制到目标dst，并且返回复制的元素的个数。
+源和目标可能重叠。复制的数量是len(src)和len(dst)中的最小值
+
+map可认为是一个用户字符串索引的数组(在其最简单的形式下)
+
+
+3.函数
+
+函数是构建go程序的基础不见
+
+命名返回值
+
+go函数的返回值或结果参数可以指定一个名字，
+如果对其命名，在函数开始时，它们会用其类型的零值初始化；
+如果函数在不加参数的情况下执行了return语句，结果参数
+的当前值作为返回值返回。用这个特性，允许(再一次的)用较少
+的代码做更多的事
+
+由于命名结果会被初始化并关联于无修饰的return
+
+
+延迟代码
+
+假设有一个函数，打开文件并且对其进行若干读写。在这样的函数中，
+经常有提前返回的地方。
+如果这样做，就需要关闭正在工作的文件描述符。
+
+go有defer,在defer后指定的函数会在函数退出前调用
+
+将Close对应的放置于Open后，能够使函数更加健壮
+可以将多个函数放入"延迟列表"中
+
+延迟的函数是按照后进先出(LIFO)的顺序执行
+
+利用defer甚至可以修改返回值，
+defer func
+
+变参
+
+接受变参的函数是有着不定数量的参数的。
+首先需要定义函数使其接受变参
+
+func myfunc(arg ...int){}
+
+arg...int告诉go这个函数接受不定数量的参数。注意，这些参数的
+类型全部是int.在函数体中，变量arg是一个int类型的slice:
+
+for _, n := range arg{
+	fmt.Printf("And the number is:%d\n",n)
+}
+
+
+
+如果不指定变参的类型，默认是空的接口interface{}
+
+函数作为值
+
+也可以编写一个接受函数作为参数的函数，例如，用于操作int类型的
+slice的Map函数
+
+回调
+
+当函数作为值时，就可以很容易的传递到其他函数里，然后可以作为回调。
+首先定义一个函数，对整数做一些"事情"
+func callback(y int,f func(int)){
+	f(y)
+}
+
+panic,recover
+
+
+go没有像java那样抛出一个异常机制：不能抛出一个异常，
+作为替代，它使用了panic,recover,
+
+panic,
+	是一个内建函数，可以中断原有的控制流程，进入一个令人
+	恐慌的流程中。当函数F调用panic,函数F的执行被中断，
+	并且F中的延迟函数会正常执行，然后F返回到调用它的地方，
+	在调用的地方，F的行为就像调用了panic,
+	这一过程继续向上，直到程序崩溃时的所有goroutine返回
+	panic可以直接调用panic产生。也可以由运行时错误产生
+	例如访问越界的顺组
+
+Recover
+	是一个内建的函数，可以让人进入令人恐慌的流程中的goroutine
+	恢复过来。recover仅在延迟函数中有效
+
+
+在正常的执行过程中，调用recover会返回nil并且没有任何效果。
+如果当前的goroutine陷入恐慌，调用recover可以捕获到panic
+的输入值，并且恢复正常的执行
+
+这个函数检查作为其参数的函数在执行时是否会产生panic
+
+定义一个新函数throwsPanic接受一个函数作为参数，
+当这个函数产生panic,就会返回true,否则返回false
+
+定义一个利用recover的defer函数，如果当前的goroutine产生了panic
+
+这个defer函数能够发现，当recover()返回非nil值，设置b为true
+
+调用作为参数接收的函数
+
+返回b的值。由于b是命名返回值
+
+用new分配空间，创建指针指向的stack的空间，
+
+4.包
+
+包是函数和数据的集合。用package保留字定义一个包。文件名不需要与
+包名一直。包名的约定是使用小写字母。go包可以由多个文件组成，但是使用
+相同的package<name>这一行。
+
+p48
