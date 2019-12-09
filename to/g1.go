@@ -1,11 +1,17 @@
 package main
 
-func throwsPanic(f func())(b bool)  {
-defer func() {
-	if x := recover();x != nil{
-		b = true
-	}
-}()
-f()
-return 
+import "fmt"
+
+
+type NameAge struct{
+	name string
+	age int
 }
+
+func main()  {
+	a := new(NameAge)
+	a.name = "Pete";a.age=42
+
+	fmt.Printf("%v\n",a)
+}
+
