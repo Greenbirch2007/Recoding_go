@@ -1,44 +1,33 @@
 package main
 
-import "fmt"
-
-type Flying struct {
-
+// 声明日志写入器接口
+type LogWriter interface {
+	Write(data interface{}) error
 }
 
-func (f *Flying)Fly()  {
-	fmt.Println("can fly")
-}
-
-
-type Walkable struct {
-
-}
-
-func (f *Walkable) Walk()  {
-	fmt.Println("can walk")
+// 日志器
+type Logger struct {
+	writerList []LogWriter
 }
 
 
-
-type Human struct {
-	Walkable
+// 注册一个日志写入器
+func (l *Logger)RegisterWriter(writer LogWriter)  {
+	l.writerList = append(l.writerList,writer)
 }
 
-type Bird struct {
-	Walkable
-	Flying
+
+//将一个data类型的数据写入日志
+
+func (l *Logger)Log(data interface{})  {
+	//遍历所有注册的写入器
+	for _,writer := range l.writerList{
+		//将日志输出到每一个写入器中
+		writer.Write(data)
+	}
 }
 
-func main()  {
-	b := new(Bird)
-	fmt.Println("Bird:")
-	b.Fly()
-	b.Walk()
-
-
-	h := new(Human)
-
-	fmt.Println("Human:")
-	h.Walk()
+//创建日志器的实例
+func NewLogger() *Logger  {
+	return &Logger{}
 }
