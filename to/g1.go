@@ -1,20 +1,44 @@
 package main
 
-import (
-	"fmt"
-	"time"
-)
+import "fmt"
 
-func test()  {
-	start := time.Now()
-	sum := 0
-	for i :=0;i <10000000000;i++{
-		sum++
-	}
-	elapsed := time.Since(start)
-	fmt.Println("该函数执行完成耗时:",elapsed)
+type Flying struct {
+
+}
+
+func (f *Flying)Fly()  {
+	fmt.Println("can fly")
+}
+
+
+type Walkable struct {
+
+}
+
+func (f *Walkable) Walk()  {
+	fmt.Println("can walk")
+}
+
+
+
+type Human struct {
+	Walkable
+}
+
+type Bird struct {
+	Walkable
+	Flying
 }
 
 func main()  {
-	test()
+	b := new(Bird)
+	fmt.Println("Bird:")
+	b.Fly()
+	b.Walk()
+
+
+	h := new(Human)
+
+	fmt.Println("Human:")
+	h.Walk()
 }
