@@ -1,37 +1,26 @@
 package main
 
-import "image"
+import (
+	"fmt"
+	"os"
+)
 
-type cfg struct {
+func main()  {
+	env := os.Environ()
+	procAttr := &os.ProcAttr{
+		Env:env,
+		Files:[]*os.File{
+			os.Stdin,
+			os.Stdout,
+			os.Stderr,
 
-}
-
-var cfg * image.Config
-
-func init()  {
-	cfg = new(config)
-}
-
-
-//NewConfig提供获取实例的方法
-
-func NewConfig() *config  {
-	return cfg
-}
-
-
-type config struct {
-
-}
-
-
-//全局变量
-var cfg *config = new(config)
-
-
-//NewConfig提供获取实例的方法
-
-func NewConfig() *config  {
-	return cfg
-
+		},
+	}
+	pid, err := os.StartProcess("/bin/ls",[]string{"ls","-l"},
+		procAttr)
+	if err != nil{
+		fmt.Printf("Error %v starting process!",err)
+		os.Exit(1)
+	}
+	fmt.Printf("The process id is %v",pid)
 }
