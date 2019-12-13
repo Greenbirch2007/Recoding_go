@@ -1,14 +1,37 @@
 package main
 
-import (
-	"fmt"
-	"p_go"
-)
+import "image"
 
-func main()  {
-	p := p_go.NewPerson("smith")
-	p.SetAge(18)
-	p.SetSal(200)
-	fmt.Println(p)
-	fmt.Println(p.Name,"age=",p.GetAge(),"sal=",p.GetSal())
+type cfg struct {
+
+}
+
+var cfg * image.Config
+
+func init()  {
+	cfg = new(config)
+}
+
+
+//NewConfig提供获取实例的方法
+
+func NewConfig() *config  {
+	return cfg
+}
+
+
+type config struct {
+
+}
+
+
+//全局变量
+var cfg *config = new(config)
+
+
+//NewConfig提供获取实例的方法
+
+func NewConfig() *config  {
+	return cfg
+
 }
