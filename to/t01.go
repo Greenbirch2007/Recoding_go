@@ -1,9 +1,29 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
-func main()
-{
-	fmt.Println("hello~go")
+func main()  {
+	ticker := time.NewTicker(time.Millisecond*500)
+
+	stopper := time.NewTimer(time.Second*2)
+
+	var i int
+	for {
+		//多路复用通道
+		select {
+		case <-stopper.C:
+			fmt.Println("stop")
+			goto StopHere
+		case <- ticker.C:
+			i++
+			fmt.Println("tick",i)
+
+		}
+	}
+
+	StopHere:
+		fmt.Println("done")
 }
-
