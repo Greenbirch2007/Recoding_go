@@ -2,28 +2,17 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"reflect"
 )
 
 func main()  {
-	ticker := time.NewTicker(time.Millisecond*500)
+	//声明整型变量a并赋初值
 
-	stopper := time.NewTimer(time.Second*2)
+	var a int = 1024
 
-	var i int
-	for {
-		//多路复用通道
-		select {
-		case <-stopper.C:
-			fmt.Println("stop")
-			goto StopHere
-		case <- ticker.C:
-			i++
-			fmt.Println("tick",i)
+	ValueOfA := reflect.ValueOf(a)
 
-		}
-	}
-
-	StopHere:
-		fmt.Println("done")
+	var getA int = ValueOfA.Interface().(int)
+	var getA2 int = int(ValueOfA.Int())
+	fmt.Println(getA,getA2)
 }
