@@ -1,29 +1,14 @@
 package main
 
 import (
-	"fmt"
-	"go/ast"
+	"errors"
 )
 
-type A struct {
-	Name string
-	id int64
-}
+var errByZero = errors.New("除数不能为０")
+func div(a,b int)(r int,err error){
+	if b== 0{
+		return 0,errByZero
+	}
 
-type B struct {
-	A
-	Name string
-	num int
-}
-
-type C struct {
-	A
-	B
-}
-func main()  {
-
-	c := C{}
-	c.A.Name = "xx"
-	c.B.Name = "b"\
-	c.
+	return a/b,nil
 }

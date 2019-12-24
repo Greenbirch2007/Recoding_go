@@ -1,21 +1,29 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+	"time"
 
-func counter() (func()int){
-	var i int = 0
-	//匿名函数引用了一个外部变量i
-	return func() int{
-		i++
-		return i
-	}
-}
+func main()  {
+	fmt.Println("*******服务器启动，监听端口 8080*")
+	mux := http.NewServeMux()
 
-func main(){
-	//创建一个计数器
-	count := counter()
-	//调用计数器，每次调用都会增加１
-	fmt.Println(count())
-	fmt.Println(count())
-	fmt.Println(count())
+	//处理静态资源文件
+	files := http.FileServer(http.Dir("./public"))
+	mux.Handle("/static/",http.StripPrefix("/static",files)
+	mux.HandleFunc("/",index)
+
+	//配置服务器
+	server := &http.Server{
+		Addr:"0.0.0.0:8080",
+		Handler: mux, //设置多路复用器
+		ReadTimeout:time.Duration(10*int64(time.Second)),
+		WriteTimeout: time.Duration(200*int64(time.Second)),
+		MaxHeaderBytes:1 <<20, //左移运算，等同于1*2^20,高性能乘法运算
+		}
+		server.ListenAndServe()
 }
+func index(writer http.ResponseWriter,request *http.Request)  {
+	fmt.Fprintf(writer,"hello world!")
+})

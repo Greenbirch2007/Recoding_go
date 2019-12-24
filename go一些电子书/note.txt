@@ -1,0 +1,197 @@
+
+
+go是一种新的语言，一种并发的，带垃圾回收的，快速编译的语言
+
+１．它可以在一台计算机上用几秒钟的时间编译一个大型的go程序
+２．go为软件构造提供了一种模型，它使依赖分析更加容易，且避免了大部分c风格include文件与库的开头
+３．　go是静态类型的语言，它的类型系统没有层级。因此用户不需要在定义类型之间的关系上话费时间，
+这样感觉其类比典型的面向语言更轻量级
+４．go完全是垃圾回收型的语言，并为并发执行与通信提供了基本的支持
+
+
+按照其设计，go打算为多核机器上系统软件的构造提供一种方法
+
+
+go是一种编译型语言，它集合了解释型语言的游刃有余，动态类型语言的
+开发效率，以及静态类型的安全性。
+
+它也大打算称为现代的，支持网络与多核计算的语言
+要满足这些目标，需要解决一些语言上的问题：
+一个富有表达能力但轻量级的类型系统，
+并发与垃圾回收机制，严格的依赖规范等
+
+这些无法通过库或工具解决好的，
+
+GOPATH与工作空间
+
+在安装GOPATH这个目录，用来存放go源码，go的可运行文件，
+自己相应的编译之后的文件。所以有三个目录:src,bin,pkg
+
+
+从go1.8开始，GOPATH环境变量现在有一个默认值，
+如果它没有被设置。
+它在Unix上默认为$HOME/go
+在Windows上默认为%USERPROFILE%/go
+
+
+GOPATH设置
+
+
+go命令依赖一个重要的环境变量：$GOPATH
+
+GOPATH允许多个目录，当有多个目录树，请注意分隔符，多个目录的
+时候Windows是分号，Linux系统是冒号，当有多个GOPATH时，
+默认会将go get的内容放在第一个目录下
+
+
+以上$GOPATH目录约定有３个子目录
+
+１．src存放源代码(比如，.go,.c,.h等)
+２．pkg编译后生成的文件(比如.a)
+3. bin编译后生成的可执行文件(可以把此目录加入到$PATH变量中，
+如果有多个gopath,那么使用${GOPATH//://bin:}/bin添加所有的bin目录)
+
+
+代码目录结构规划
+
+
+GOPATH下的src目录就是开发程序的主要目录，所有的源码都是放在这个目录下
+，那么一般我们的做法就是一个目录一个项目，
+
+例如:$GOPATH/src/mymath表示mymath这个应用包或可执行应用，
+
+这个根据package是main还是其他来决定，
+main的话就是可执行应用，其他对的话就是应用包，
+
+所以当新建应用或一个代码包时都是在src目录下新建一个文件夹，
+文件夹名称一般是代码包名称，当然也允许多级目录，例如在src下面新建了目录
+
+$GOPATH/src/github.com/astaxie/beedb那么这个包路径
+就是"github.com/astaxie/beedb"，包名称是最后一个目录beedb
+
+写一个应用包
+
+这样我的应用包目录和代码已经新建完毕，注意：一般建议package的名称和目录
+名保持一致
+
+
+编译应用
+
+已经建立了自己的应用包，如何进行编译安装？有两种方法进行安装
+
+１．　只要进入对应的包目录，然后执行go install,就可以安装了
+2. 在任意的目录执行如下代码go install　mymath
+
+
+.a文件是应用包，如何调用？
+
+仙剑一个应用程序来调用这个应用包
+
+
+新建应用包mathapp
+
+cd $GOPATH/src
+mkdir mathapp
+
+cd mathapp
+vim main.go
+
+$GOPATH/src/mathapp/main.go
+
+
+package main
+
+import (
+"mymath"
+"fmt"
+)
+
+func main(){
+	fmt.Printf("Hello,world! Sqrt(2)=%v \n",mymath.Sqrt(2))
+}
+
+可以看到这个的package是main，import 里面调用的包是mymath,这个就是相对于
+$GOPATH/src路径，如果是多级目录，就在import里面引入多级路，
+如果你有多个GOPATH,也是一样，go会自动在$GOPATH/src中寻找
+
+
+如何编译程序呢？进入该应用目录，然后执行go build,
+那么在该目录下面会生成一个mathapp的可执行文件
+
+./mathapp
+
+如何安装应用，进入该目录执行go install，那么在$GOPATH/bin/下增加了
+一个可执行文件mathapp,还记得把$GOPATH/bin加到我们的PATH里面了，
+这样可以在命令行输入如下的命令就可以执行
+
+matapp
+
+
+这里展示如何编译和安装一个可运行的应用，以及如何设计我们的目录结构
+
+
+获取远程包
+
+go语言有一个获取远程包的工具,go get,
+
+
+go get github.com/astaxie/beedb
+
+go get -u参数可以自动更新包，而且当go　get的时候自动获取该包依赖的
+其他第三方包
+
+通过这个命令可以获取相应的源码，对应的开源平台采用不同的源码控制工具，
+例如github 采用git
+
+
+$GOPATH----src----github.com----astaxie-----beedb
+
+
+
+$GOPATH----pkg-----相应平台----github.com----astaxie----beedb.a
+
+
+go get本质上可以理解为首先第一步是通过源码工具clone代码到src下面
+
+然后执行go install
+
+在代码中如何使用远程包，跟本地包一样，只要在开头加上相应路径即可
+
+
+程序的整体结构
+
+
+mygo的目录结构如下
+
+bin/
+	mathapp
+
+
+pkg/
+	平台名/如: darwin_amd64, linux_amd64
+			mymath.a
+			github.com/	
+				astaxie/	
+					beedb.a
+
+
+src/
+
+	mathapp
+		main.go
+
+	mymath/
+		sqrt.go
+	github.com/
+		astaxie/
+			beedb/
+				beedb.go
+				util.go
+
+
+从上面的结构可以清晰看到，bin目录下面存的是编译之后可以执行的文件，
+pkg下面存放的是应用包
+
+src下面保存的是应用源代码
+
+
