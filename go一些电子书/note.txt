@@ -194,4 +194,310 @@ pkg下面存放的是应用包
 
 src下面保存的是应用源代码
 
+go 命令
 
+go build ，主要用于编译代码。在包的编译过程中，若有必要
+会同时编译与之相关联的包
+
+如果是普通包，当执行go build 之后，它不会产生任何文件。如果需要
+在$GOPATH/pkg下生成相应的文件，那就得执行go install
+
+2.如果main包，当你指定go build之后，它就会在当前目录下生成一个
+可执行文件，如果你需要在$GOPATH/bin下生成相应的文件，
+需要执行go install，或使用go build -o 路径/a.exe
+
+3. 如果某个项目文件加下有很多文件，而你只想编译某个文件，就可
+在go build之后加上文件名，例如go build a.go
+go build命令默认会编译当前目录下的所有go文件
+
+４．你也可以指定编译输出的文件名。
+例如mathapp应用，我们可以指定go build -o astaxie.exe
+默认情况下是你的package名(非main包)或第一个原文件的文件名(main包)
+
+
+实际上，package名在go语言规范中指代码中"package"后使用的名称
+此名称可以与文件夹名不同。默认生成的可执行文件名是文件夹名
+
+
+go build会忽略目录下"_"或"."开头的go文件
+
+如果你的源代码针对不同的操作系统需要不同的处理，那么你可以根据不同的
+操作系统后缀来命名文件。
+例如有一个读取数组的程序，它对于不同的操作系统可能有如下几个源文件
+
+go build的时候会选择型地编译以系统名结尾的文件
+
+
+go build -o 指定输出的文件名，可以带上路径，例如，go build -o a/b/c
+
+go build  -i 安装相应的包，编译　go install
+go build  -a更新全部已经是最新的包的，但是对标准包不适用
+go build 　-n把需要执行的编译命令打印出来，但是不执行，
+这样就可以很容易的直到底层是如何运行的
+
+go build -p n指定可以并行可运行的编译数目，默认是CPU数目
+go build -race开启编译的时候自动检测数据竞争的情况，
+目前只支持64位的机器
+
+go build -v打印出来当我们正在编译的包名
+
+go build -work打印出来编译时的临时文件夹名称，并且
+如果已经存在的话就不要删除
+
+go build -x 打印出来执行的命令，其实就是和-n的结果类似，
+只是这个会执行
+
+
+go build 　-ccflags 'arg list'　传递参数给5c,6c,8c调用
+
+go build  -compiler name　指定相应的编译器，gccgo还是gc
+
+go build -gccgoflags 'arg list' 传递参数给gccgo编译连接调用
+
+go build -gcflags 'arg list'传递参数给5g,6g,8g调用
+
+
+go build 　-installsuffix suffix为了和默认的安装包区别开发来
+采用这个前缀来重新安装哪些依赖的包
+
+go build -race的时候默认已经是 -installsuffix race,
+大家可以通过go build -n命令来验证
+
+go build -ldflags　'flag list' 传递参数给5l,6l,8l调用
+
+
+go build -tags 'tag list'设置在编译的时候可以适配的那些
+tag,详细的tag限制参数里
+
+
+go clean,用来移除当前源码包和关联源码里面编译生成的文件。
+这些文件包括
+
+
+_obj/  旧的object目录，由Makefiles遗留
+_test/　	旧的test目录,由Makefiles遗留
+_testmain.go	旧的gotest文件，由Makefiles遗留
+test.go  	旧的test记录，由Makefiles遗留
+build.out 	旧的test记录，由Makefiles遗留
+*.[568ao]	object文件，由Makefiles遗留
+
+DIR(.exe)	由go build 产生
+DIR.test(.exe) 	由 go test -c产生
+MAINFILE(.exe) 由go build　MAINFILE.go产生
+
+*.go 	由SWIG产生
+
+我一般都是利用这个命令清楚编译文件，然后github递交源码，在本机
+测试的时候这些编译文件都是和系统相关的，但是对于源码管理没有必要
+
+
+go clean =i -n
+
+go clean -i　清除关联的安装的包和可运行恩建，也就是通过go install安装的文件
+go clean -n 把需要执行的清楚命令打印出来，但是不执行，这样就可以很容易
+的知道底层是如何运行的
+
+go clean -r 循环的清除在import中引入的包
+go clean -x打印出来执行的详细命令，其中就是-n打印的执行版本
+
+
+go fmt,可以格式化写好的代码文件，使得写代码的时候不需要关心格式，
+
+只需要在写完之后执行go fmt<文件名>.go
+
+你的代码就被修改成标准格式，
+开发工具里面一般都带来保存时候自动格式化功能，
+这个功能其实在底层就是调用了go fmt
+
+
+使用go fmt命令，其实是调用了go fmt,而且需要参数-w
+
+否则格式化结果不会写入文件。
+
+gofmt-w -l src，可以格式化整个项目
+
+
+所以go fmt是gofmt的上一层一个包装的命令，我们想要更多的个性化的
+格式化可以参考gofmt
+
+gofmt 的参数介绍
+
+
+gofmt -l显示那些需要格式化的文件
+gofmt -w 把改写后的内容直接写入到文件中，而不是作为结果打印到
+标输出
+gofmt -r　添加形如"a[b:len(a)->a[b:]]"的重写规则，方法我们做
+	批量替换
+
+gofmt -s 简化文件中的代码
+gofmt -d 显示格式化前后的diff而不是写入文件，默认是false
+gofmt  -e 打印所有的语法错误到标准输出。如果不使用此标记，
+	则只会打印不同行的前１０个错误
+
+gofmt -cpuprofile 支持调试模式，写入相应的cpufile到指定的文件
+
+go get ,用来动态获取远程代码包。这个命令在内部实际上分成了两步
+操作：
+第一步是下载源码包，
+第二步，执行go install
+
+下载源码包的go工具会自动根据不同的域名调用不同的源码工具
+
+所以为了go get能正常工作，你必须确保安装了合适的源码管理工具，
+并同时把这些命令加入你的PATH中。
+其实go get支持自定义域名的功能
+
+go get -d 只下载不安装
+go get -f　只有在你包含了-u参数的时候才有效，不让-u
+	去验证import中的每一个都已经获取了，这对于本地fork
+	的包特别哟用
+
+go get -fix在获取源码之后先运行fix,然后再去做其他的事情
+
+go get -t同时也下载需要为运行测试所需要的包
+go get -u强制使用网络去更新包和它的依赖包
+go get -v显示执行的命令
+
+go install ,这个命令在内部实际上分成了两步操作：
+１．第一步是生成结果文件(可执行文件或.a包)
+２．第二步会把编译好的结果移到$GOPATH/pkg或$GOPATH/bin
+
+参数支持go build的编译参数。大家只要记住一个参数-v就好了，这个
+随时随地的可以查看底层的执行信息
+
+
+go test  ,执行这个命令，会自动读取源码目录下名为*_test.go的文件
+生成并运行测试用的可执行文件
+
+
+默认情况下，不需要任何的参数，它会自动把你源码包下面所有test
+文件测试完毕，当然你也可以带上参数
+
+go test  -bench regexp，执行相应的benchmarks，例如　-bench=.
+go test  -cover 开启测试覆盖率
+go test  -run regexp 只运行regexp匹配的函数，例如 -run=Array
+	那么就执行包含有Array开头的函数
+
+go test  -v显示测试的详细命令
+
+
+go tool 下面下载聚集了很多命令，
+
+go tool fix .用来修复以前老版本的代码到新版本，
+例如go1之前老版本的代码转化到go1,例如API的变化
+
+go tool vet directory|files 用来分析当前目录的代码是否都是
+正确的代码，例如是不是调用fmt.Printf里面的参数不正确，例如
+函数里面提前return了然后出现了无用代码之类的
+
+go generate ,用于在编译前自动化生成某类代码。
+go generate 通过分析源码中特殊的注释，然后执行相应的名。
+
+go语言基础
+
+go是一门类似c的编译型语言，它的编译速度非常快。
+
+２５个关键字
+
+break,default,func,interface,select
+case,defer,go,map,struct
+chan,else,goto,package,switch
+const,fallthrough,if,range,type
+continue,for,import,return ,var
+
+
+
+使用var关键字是go最基本的定义变量方式，
+
+_(下划线)　是个特殊的变量名，任何赋予它的值都会被丢弃
+
+_,b := 34,35
+
+go对于已经声明但未使用的变量会在编译阶段操作，
+声明了i但未使用
+
+所谓常量，也就是在程序编译阶段就确定下来的值，而程序在运行时
+无法改变该值。
+在go程序中，常量可定义为数值，布尔值或字符串等类型
+
+go中的字符串都是采用utf-8字符集编码。
+字符串是用一对双引号(")或反引号(`)括起来定义，它的类型是string
+
+
+错误类型
+
+go内置有一个error类型，专门用来处理错误信息，go的package
+里面还专门有一个包errors来处理错误
+
+
+err := errors.New("emit macho dwarf:elf header corrupted")
+if err != nil{
+	fmt.Print(err)
+}
+
+go数据底层的存储
+
+分组声明
+
+在go语言中，同时声明多个常量，变量，或导入多个包时，可采用分组的
+方式进行声明
+
+
+iota枚举
+
+go里面有一个关键字iota,这个关键字用来声明enum的时候采用，它
+默认开始值是0,const每增加一行加１
+
+除非被显式设置为其他值或iota,每个const分组的第一个常量
+被默认设置为它的０值，第二及后续的常量被默认为它前面那个常量的值
+如果起那么那个常量的值为iota，则它也被设置为iota
+
+g程序设计的一些规则
+
+１．大写字母开头的变量是可导出的，也就是其它包可以读取的，是公有
+变量；小写字母开头的就是不可导出的，是私有变量
+２．大写字母开头的函数也是一样，相当于class中带public关键词
+的公有函数；小写字母开头的就是有private关键词的私有函数
+
+
+
+array,slice,map
+
+
+array就是数组
+
+var arr [n]type
+
+在[n]type中，n表示数组的长度，type表示存储元素的类型。
+对数组的操作和其他语言类似，都是通过[]来进行读取或赋值
+
+var arr [10]int //声明一个int类型的数组
+arr[0] = 42 //数组下标是从0开始的
+a
+
+由于长度也是数组类型的一部分，因此[3]int与[4]int是不同的类型
+数组也就不能改变长度。数组之间的赋值是值的赋值，
+即当把一个数组作为参数传入函数的时候，传入的其实是该数组的
+副本，而不是它的指针。如果要使用指针，那么就需要用到slice
+
+数组可以使用另一种　:=来声明
+go支持嵌套数组，即多维数组
+
+//声明一个二维数组，该数组以两个数组作为元素与，其中
+//每个数组中又有４个int类型的元素
+
+doubleArray := [2][4]int{1,2,3,4}, [4]int{5,6,7,8}}
+
+可以简化，直接忽略内部的类型
+
+
+easyArray := [2][4]int{{1,2,3,4},{5,6,7,8}}
+
+slice
+
+在很多应用场景中，数组并不能满足我们的需求。
+在初始定义数组时，我们并不知道需要多大的数组，
+因此我们就需要"动态数组"。在go里面这种数据结构叫做slice
+
+slice并不是真正意义上的动态数组，而是一个引用该类型。
+slice总是指向一个底层array，slice的声明也可以像array一样，只是不需要长度
