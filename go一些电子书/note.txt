@@ -713,7 +713,329 @@ go函数会自动调用init()和main(),所以你不需要在任何地方调用
 
 声明的函数类型在这个地方做了一个参数
 
+struct 
+go语言，也和c或其他语言一样，可以声明新的类型，作为其它类型的
+属性或字段的容器。
 
+
+声明一个struct
+
+1.一个string类型的字段name,用来保存用户名称这个属性
+２．一个int类型的字段age,用来保存用户年龄这个属性
+
+
+结构体实例的声明方式：
+１．按照顺序提供初始化值
+
+
+P := person{"Tom",25}
+
+
+2.通过 field:value的方式初始化，这样可以任意顺序
+
+P := person{age:24,name:"Tome"}
+
+3.当然也可以通过new 函数分配一个指针，此处P的类型为*person
+
+
+P := new(person)
+
+
+struct的匿名字段
+
+
+go支持只提供类型，而不写字段名的方式，也就是匿名字段，也称为嵌入字段。
+
+
+当匿名字段是一个strut的时候，那么这个struct所拥有的全部字段都被隐式
+地引入了当前定义的这个struct
+
+
+Student访问属性age和name的时候，就想访问自己所有用的字段一样，
+匿名字段实现了字段的继承。
+student还能访问Human这个字段作为字段名
+
+mark.Human = Human{"Marcus",55,220}
+mark.Human.age = -=1
+
+通过匿名访问和修改字段相当有用，不仅仅是struct字段，所有的内置类型
+和自定义类型都是可以作为匿名字段的
+
+struct不仅仅能够将struct作为匿名字段，自定义类型，内置类型都可以
+作为匿名字段，而且可以在相应的字段上面进行函数操作
+
+
+最外层的优先访问，也就是通过student.phone访问的时候，是访问student里面的
+字段，而不是human里面的字段
+
+
+这样就允许我们去重载通过匿名字段继承的一些字段，当然如果我们
+想访问重载后对应匿名类型里面的字段，可以通过匿名字段来访问
+
+
+
+面向对象
+
+
+前面介绍了函数和struct,那么函数是否可以当做struct的字段来处理
+
+函数的另一种形态，带有接收者的函数，称为method
+
+
+method
+
+假设有一个场景，定义了一个stuct叫做长方形，
+
+method是附属在一个给定的类型上的，它的语法和函数的
+声明语法几乎是一样，只是在func后面增加了一个receive（也就是method所依从的主题）
+
+method area()是依赖于某个形状(比如说Retangle)
+来发生作用的。Rectangle.area()的发出者是Rectangle,
+area()是属于Rectanle的方法，而非一个外围函数
+
+更具体的，Rectangle存在字段height和width,同时存在方法area()
+这些字段和方法都属于Rectangle
+
+method使用的时候要注意：
+１．虽然method的名字一模一样，但是如果接收者不一样，那么method就不一样
+２．method里面可以访问接收者的字段
+３．　调用method通过，访问，就像struct里面访问字段一样
+
+method　area()分别属于Rectangle和Circle，这个area()方法
+是由Rectangle/Circle发出的
+
+method用虚线标出，此处的意思是Receiver是以值传递，而非引用传递，
+Receiver还可以是指针，两者的差别在于，指针作为Recevier会对实例
+对象的内容发生操作，而不同类型作为Receiver仅仅以副本作为
+操作对象，并不对原实例对象发生操作
+
+struct只是自定义类型里面一种比较特殊的类型而已，还有其他自定义类型申明
+可以通过如下这样的申明来实现。
+
+type typeName typeLiterial
+
+申明自定义类型
+
+
+type ages int
+
+type money float32
+type months map[string]int
+
+m := months{
+	"January":31,
+	"February":28,
+	...
+	"December":31,
+}
+
+
+实际上只是定义了一个别名
+
+
+指针作为receiver
+
+
+它的receiver是一个指向Box的指
+如果一个method的receiver是*T,你可以在一个T类型的实例变量V上面滴啊用这个
+method,而不需要&V去调用这个method
+
+如果一个method的receiver是T,你可以在一个*T类型的变量P上面调用这个method
+而不需要*P去调用这个method
+
+method继承
+
+method也是可以继承的。如果匿名字段实现了一个method，那么包含
+这个匿名字段的stuct也能调用method
+
+go语言中的面向对象，没有任何的私有，公有关键字，通过大小写来实现(大写开头的为公有，
+小写开头的为私有)，方法也同样使用这原则
+
+
+interface是一组method签名的组合，我们通过interface来定义对象的一组行为
+
+
+Student和Employee实现另一个方法Sing,然后Student实现方法BorrowMoney
+而Employee实现SpendSalary
+
+Student 实现了三个方法：SayHI,Sing,BorrowMoney而Employee时薪了
+SayHi,Sing,SpendSalary
+
+上面的组合称为interface(被对象Stundent和Employee实现)
+例如Student和Eployee都实现了interface:SayHi和Sing.
+也就是这两个对象该interface类型。
+而Employee没有实现这个interface:SayHi,Sing和BorrowMoney,
+因为Employee没有实现BorrowMoney这个方法
+
+interface类型
+
+interface类型定义了一组方法，如果某个对象实现了某个接口的所有方法，则
+此对象就实现了此接口
+
+type Human struct{
+	name string
+	age int
+	phone string
+}
+
+type Student struct{
+	Human // 匿名字段Human
+	school string
+	loan float32
+}
+
+type Employee struct{
+	Human //匿名字段Human
+	company string
+	money float32
+}
+
+
+//Human对象实现SayHi方法
+
+func(h *Human) SayHi(){
+	fmt.Printf("Hi, I am %s you can call me on %s \n",h.name,h.phone)
+}
+
+//Human 对象实现Sing方法
+func (h *Human)　Sing(lyrics string){
+	fmt.Println("la la,la la la,...",lyrics)
+}
+
+
+//Human对象实现Guzzle方法
+
+
+func (h *Human) Guzzle(beerStein string){
+	fmt.Println("Guzzle Guzzle ...",beeStein)
+}
+
+func (e *Employee)SayHi(){
+	fmt.Printf("Hi,")
+
+
+interface可以被任意的对象实现。一个对象可以实现任意多个interface,
+任意的类型都实现了空interface(我们这样定义:interface{})
+也就是包含0个method的interface
+
+interface值
+
+如果我们定义了一个interface的变量，那么这个变量里面可以存实现这个interface
+的任意类型的对象。
+
+因为m能够持有这三种类型的对象，所以我们都可以定义一个包含Men类型元素的slice,
+这个slice可以被赋予实现Men接口的任意结构的对象，这个和我们传统
+意义上面的slice有所不同
+
+interface就是一组抽象方法的集合，它必须由其他非interface类型实现，
+而不能自我实现，go通过interface实现duck-typing即
+
+空interface
+
+空interface(interface{})不包含任何的method,所有的类型都实现了空interface
+
+空interface对于描述起不到任何的作用(因为它不包含任何的method)
+但是空interface在我们需要存储任意类型的数值的时候相当有用，
+因为它可以存储任意类型的数值，它有点类似与c语言的void*类型
+
+//定义a为空接口
+
+var a interface{}
+var i int =5
+s := "Hello World"
+//a可以存储任意类型的数值
+
+a = i
+a =s
+
+
+一个函数把interface{}作为参数，那么他可以接受
+任意类型的值作为参数，如果一个函数返回interface{}
+
+那么也就可以返回任意类型的值。
+
+interface函数参数
+
+interface的变量可以持有任意实现该interface类型的对象，
+这给我们编写函数(包括method)提供了一些额外的思考，
+我们是不是可以通过定义interface参数，
+然后函数接受各种类型的参数
+
+fmt.Println是我们常用的一个函数，但是你是否注意到
+它可以接受任意类型的数据
+
+打开fmt的源码文件，
+
+注：实现了error接口的对象(即实现了Error()string的对象)
+使用fmt输出时，会调用Error()方法，因此不必再定义String()方法了
+
+
+interface变量存储的类型
+
+我们知道interface的变量里面可以存储任意类型的数值(该类型实现了
+interface)那么我们怎么反向知道这个变量里面实际保存了
+的是哪个类型的对象？目前常用的有两种方法：
+
+Comma-ok断言
+
+go语言里面有一个说法，可以直接判断是否是该类型的变量：
+value,ok =element.(T),这里value就是变量的值，
+ok是一个bool类型，element是interface变量，
+T是断言的类型
+
+如果element里面确实存储了T类型的数值，那么ok返回true,
+否则返回false
+
+嵌入interface
+
+go里面真正吸引人的是它内置的逻辑语法，就像在学习stuct时学习
+的匿名字段，那么相同的逻辑运入到interface里面
+如果一个interface1作为interface2的一个嵌入字段，
+那么interface2隐式的包含了interface1里面的method
+
+
+io包下面的io.ReadWriter,它包含了io包下面的Reader和Writer两个
+interface
+
+
+//io.ReadWriter
+
+type ReadWriter interface{
+	Reader
+	Writer
+}
+
+
+反射
+
+go语言实现了反射，所谓反射就是能检查程序在运行时的状态。
+我们一般用到的包就是reflect包。
+如何运用reflect奥，
+
+使用reflect一般分成三步，要去反射是一个类型的值(这些值都
+实现了空nterface),首先需要把它转化成reflect对象
+(relect.Type或reflect.Value
+根据不同的情况调用不同的函数)
+
+转化为reflect对象之后我们就可以进行一些操作了，也就是
+将relect对象转化成相应的值
+
+tag := t.Elem().Field(0).Tag //获取定义在struct里面的标签
+
+name := v.Elem().Field(0).String //获取存储在第一个字段里面的值
+
+
+获取反射值能返回相应的类型和数值
+
+var x float64 =3.4
+v := relect.ValueOf(x)
+
+fmt.Println("type:",v.Type())
+fmt.Println("kind is float64:",v.Kind() == reflect.Float64)
+
+反射的话，那么反射的字段必须是可修改的，我们前面学习过传值和传引用，
+这里面也是一样的道理。
+反射的字段必须是可读写的意思，
 
 
 

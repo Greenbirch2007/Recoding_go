@@ -2,22 +2,31 @@ package main
 
 import "fmt"
 
-func max(a,b int)int  {
-	if a>b {
-		return a
-	}
-	return b
+type Human struct {
+	name string
+	age int
+	phone string
 }
 
 
-func main(){
-	x := 3
-	y := 4
-	z := 5
-	max_xy := max(x,y)
-	max_xz := max(x,z)
+type Student struct {
+	Human //匿名字段
+	school string
+}
 
-	fmt.Println("max(%d,%d) =%d\n",x,y,max_xy)
-	fmt.Println("max(%d,%d) =%d\n",x,z,max_xz)
-	fmt.Println("max(%d,%d) =%d\n",y,z,max(y,z))
+type Employee struct {
+	Human // 匿名字段
+	company  string
+}
+
+//在human上面定义了一个method
+
+func (h *Human)SayHi()  {
+	fmt.Printf("Hi ,I am %s you can call me on %s\n",h.name,h.phone)
+
+}
+
+func main()  {
+	mark := Student{Human{"Mark",25,"22--22"},"MITY"}
+	mark.SayHi()
 }
