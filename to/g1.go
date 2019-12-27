@@ -2,31 +2,27 @@ package main
 
 import "fmt"
 
-type Human struct {
-	name string
-	age int
-	phone string
-}
-
-
-type Student struct {
-	Human //匿名字段
-	school string
-}
-
-type Employee struct {
-	Human // 匿名字段
-	company  string
-}
-
-//在human上面定义了一个method
-
-func (h *Human)SayHi()  {
-	fmt.Printf("Hi ,I am %s you can call me on %s\n",h.name,h.phone)
-
+func fibonacci(c ,quit chan int)  {
+	x,y := 1,1
+	for {
+		select {
+		case c <-x:
+			x,y = y,x+y
+		case <- quit:
+			fmt.Println("quit")
+			return
+		}
+	}
 }
 
 func main()  {
-	mark := Student{Human{"Mark",25,"22--22"},"MITY"}
-	mark.SayHi()
+	c := make(chan int)
+	quit := make(chan int)
+	go func() {
+		for i:=0;i<10;i++{
+			fmt.Println(<-c)
+		}
+		quit <- 0
+	}()
+	fibonacci(c,quit)
 }
