@@ -1500,4 +1500,90 @@ c.server.Handler,
 一个http连接处理流程
 
 
+go的http包详解
+
+
+
+go的http有两个核心功能：Conn,ServeMux
+
+
+Conn的goroutine
+
+
+与一般编写的http服务器不同，go为了实现高并发和高性能，
+使用了goroutines来处理Conn的读写事件，这样每个请求都能保持独立，相互不会阻塞
+可以高效的相应网咯事件。这是go高效的保证
+
+go在等待客户端请求里面可以这样写
+
+c,err := srv.newConn(rw)
+if err != nil{
+	continue
+}
+
+go c.serve()
+
+这里可以看到客户端的每次请求都会创建一个Conn,这个Conn
+里面保存了该次请求的信息，然后再传递到对应的handler，该handler
+中便可以读取到相应的header信息，这样保证了每个请求的独立性
+
+ServeMux的自定义
+
+内部是调用了http包默认的的路由器，通过路由器把本次请求的信息传递到了
+后端的处理函数。那么这个路由器是怎么实现的？
+
+type ServeMux struct{
+	mu sync.RwMutex //锁，由于请求涉及到并发处理，因此之类需要一个锁机制
+	m map[string]muxEntry //路由规则，一个string对应一个mux实体，
+	hosts bool//是否在任意的规则中带有host信息
+｝
+
+
+type muxEntry struct{
+	explicit bool//是否精确匹配
+	h Handler //这个路由表达式对应哪个handler
+	pattern string //匹配字符串
+}
+
+type Handler interface{
+	ServeHTTP(ResponseWriter,*Request) //路由实现器
+}
+
+
+go代码的执行流程
+
+通过对http包的分析之后，先让我们来梳理一下整个的代码指定过程
+
+首先调用Http.HandleFunc
+
+按顺序做了几件事：
+１．调用了DefaultServeMux的HandleFunc
+
+2.调用了DefaultServeMux的Handle
+
+3. 往DefaultServeMux的map[string]muxENntry中增加对应的handler和路由规则
+
+其次调用http.ListenAndServe(":9090",nil)
+
+按顺序做了几件事情：
+
+１．实例化Server
+2. 调用Serve的ListenAndServe()
+3.调用net.Listen("tcp",addr)监听端口
+４．　启动一个for循环，在循环体中Accept请求
+
+５．对每个请求实例化一个Conn,并且开启一个goroutine为这个请求进行服务go c.serve()
+
+6. 读取每个请求的内容w,err := c.readRequesst()
+
+7.判断handler是否为空，如果没有设置handler(这里例子就没有设置handler)
+handler就设置为DefaultServeMux
+
+
+8. 调用handler的ServeHttp
+
+
+
+
+
 
