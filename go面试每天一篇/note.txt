@@ -1,0 +1,40 @@
+Go 面试每天一篇（第 1 天）
+
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    defer_call()
+}
+
+func defer_call() {
+    defer func() { fmt.Println("打印前") }()
+    defer func() { fmt.Println("打印中") }()
+    defer func() { fmt.Println("打印后") }()
+
+    panic("触发异常")
+}
+
+
+Go 面试每天一篇（第 2 天）
+
+package main
+
+import "fmt"
+
+
+func main(){
+	slice := []int{0,1,2,3}
+	m := make(map[int]*int)
+	for key,val := range slice{
+		m[key] = &val
+}
+	for k,v := range m{
+		fmt.Println(k,"->",*v)
+}
+
+
+
