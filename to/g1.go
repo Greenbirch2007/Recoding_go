@@ -1,12 +1,19 @@
 package main
 
-func GetValue() int  {
-	return 1
+type A interface {
+	ShowA() int
 }
 
-func main()  {
-	i := GetValue()
-	switch i.(type){
-	case int:
-	}
+type B interface {
+	ShowB() int
 }
+
+type Work struct {
+	i int
+}
+
+func (w Work) ShowA() int {
+	return w.i + 10
+
+
+func 
