@@ -2,18 +2,27 @@ package main
 
 import "fmt"
 
-
-func main(){
-	a :=1
-	b :=2
-	defer calc("1",a,calc("10",a,b))
-	a = 0
-	defer calc("2",a,calc("20",a,b))
-	b =1
+type People interface{
+	Show()
 }
 
-func calc(index string,a,b int) int{
-	ret := a+b
-	fmt.Println(index,a,b,ret)
-	return ret
+type Student struct{}
+
+
+func (stu *Student)Show(){}
+
+func main(){
+	var s *Student
+	id s = nil{
+		fmt.Println("s is nil")
+	}else{
+		fmt.Println("s is not nil")
+	}
+	var p People = s
+	if p == nil{
+		fmt.Println("p is nil")
+	}else{
+		fmt.Println("p is not nil")
+	}
+	
 }
