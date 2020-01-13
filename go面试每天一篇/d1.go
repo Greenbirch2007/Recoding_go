@@ -2,27 +2,20 @@ package main
 
 import "fmt"
 
-type People interface{
-	Show()
-}
 
-type Student struct{}
-
-
-func (stu *Student)Show(){}
-
-func main(){
-	var s *Student
-	id s = nil{
-		fmt.Println("s is nil")
-	}else{
-		fmt.Println("s is not nil")
+func main()  {
+	var m = map[string]int{
+		"A":21,
+		"B":22,
+		"C":23,
 	}
-	var p People = s
-	if p == nil{
-		fmt.Println("p is nil")
-	}else{
-		fmt.Println("p is not nil")
+	counter := 0
+	for k,v := range m{
+		if counter == 0{
+			delete(m,"A")
+		}
+		counter++
+		fmt.Println(k,v)
 	}
-	
+	fmt.Println("counter is ",counter)
 }
