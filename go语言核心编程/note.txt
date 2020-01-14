@@ -669,5 +669,225 @@ a := make([]int,10)
 
 1.6.4 map
 
-p44 
+go语言内置的字典类型为map
+
+
+map[K]T
+K可以是任意可以进行比较的类型，T是值类型。map也是一种引用类型
+
+(1) map的黄建
+使用字面量创建
+
+
+使用内置的make函数创建
+
+make(map[K]T) // map的容量使用默认值
+make(map[K],len) // map的容量使用给定的len值
+
+(2) map支持的操作
+
+1. map的单个键值对访问格mapName[key]，更新某个key的值时mapName[key]
+放到等号左边，访问某个key的值时mapName[key]放在等号的右边
+
+2. 可以使用range遍历一个map类似变量，但是不保证每次迭代元素的顺序
+
+3. 删除map中的某个键值，使用如下语法:delete(mapName,key)
+delete是内置函数，用来删除map中的某个键值对
+
+4. 可以使用内置的len()函数返回map中的键值对数量
+
+
+注意
+
+go内置的map不是并发安全的，并发安全的map可以使用标准包sync中的map
+
+
+不要直接修改map value内某个元素的值，如果向修改map的某个键值，则必须
+整体赋值
+
+
+1.6.5 struct
+
+
+go中的struct类型和C类似， 也称为结构体，由多个不同类型元素组合而成。
+这里有两层：
+1. struct结构中的类型可以是任意类型
+2. struct的存储空间是连续的，
+其字段按照声明时的顺序存放(注意字段之间有对齐要求)
+
+
+struct有两种形式：一种是struct类型字面量，另一种
+是使用type声明的自定义struct类型
+
+(1) struct类型字面量
+
+struct类型字面量的声明格式如下
+
+
+struct {
+	FeildName FeildType
+}
+
+
+(2) 自定义struct类型。自定义struct类型声明格式如下：
+
+type  TypeName struct{
+	FeildName FeildType}
+
+
+实际使用struct字面量的场景不多，更多的时候是通过type自定义一个
+新的类型来实现的。
+type 是自定义类型的关键字，不但支持struct类型的创建，
+还支持任意其他子定义类型的创建。
+
+
+(3) struct类型变量的初始化
+
+type Person struct{
+	Name string
+	Age int
+}
+
+
+type Student struct{
+	*Person
+	Number int
+}
+
+
+//按照类型声明顺序，逐个赋值
+// 不推荐这种初始化方式，一旦struct增加字段，则整个初始化语句会报错
+
+
+a := Person{"Tom",31}
+
+
+
+
+//推荐这种使用Feild名字的初始化方式，没有指定的字段则默认初始化为类型的零值
+
+p := &Person{
+	Name:"tata",
+	Age:12,
+}
+
+
+s := Student {
+	Person:p,
+	Number:110,
+}
+
+
+其他复合类型
+
+接口(Interface),通道(chan)
+
+
+1.7 控制接口
+
+
+程序指令都是线性地存放在存储器上。
+
+程序执行从本质上来说就是两种模式：顺序和跳转
+
+
+
+顺序就是按照程序指令在存储器上的存放顺序逐条执行
+跳转就是遇到跳转指令就跳转到某处继续线性执行
+
+go是一门高级语言，起源程序虽然经过了高度的抽象并封装了很多语法糖，但
+还是跳不出这个模式(暂时不考虑goroutine引入并发后的执行视图变化)
+
+顺序在Go里面体现在从main函数开始逐条向下执行，就像我们的程序源代码
+顺序一样：跳转在Go里面体现为多个语法糖，包括goto语句和函数调用，
+分支(if,switch,select)，循环(for)
+跳转分为两种：一种是无条件跳转，比如函数调用和goto语句：一种是有条件的
+跳转，比如分支和循环
+
+顺序语句很简单，就是我们天然写程序的从前往后的顺序
+
+
+
+go的源代码的熟悉并不一定是编译后最终可执行的程序的指令顺序
+
+1.7.1 if语句
+
+特点
+
+1. if后面的条件判断子句不需要用小括号括起来
+2. {必须放在行尾，和if或if else放在一行
+3. if后面可以带一个简单的初始化语句，并以分号分割，该简单语句
+声明的变量的作用域是整个if语句块，包括后面的else if和else分支
+
+4. Go语言没有条件运算符(a>b?a:b),这也符合Go的设计哲学，
+只提供一种方法做事情
+
+5. if分支语句遇到return后直接返回，遇到break则跳过break下方
+的if语句块
+
+if x<= y{
+	return y
+}else{
+	return x
+}
+
+一个完整的if else的语句示例
+
+
+if x := f(); x< y{ //初始化语句中的声明变量x
+	return x
+} else if x> z{ //x在else if里面一样可以被访问
+	return z
+}else{
+	return y
+}
+
+
+最佳实践
+
+1.尽量减少条件语句的复杂度，如果条件语句太多，太复杂，则建议放到函数里面
+封装起来
+2. 尽量减少if语句的嵌套层次，通过重构让代码变得扁平，便于阅读
+
+
+if err,file := os.Open("xxxx"); err == nil{
+	defer file.Close()
+	//do something
+	}else{
+		return nil,err
+}
+
+修改后的代码
+
+err,file := os.Open("xxx")
+if err != nil{
+	return nil,err
+}
+defer file.Close()
+//do something
+
+
+17.2 switch语句
+
+
+switch语句会根据传入的参数检测并执行符合条件的分支
+
+switch的语法特点：
+
+
+1.7.3 for语句
+return 和函数调动
+
+return语句也能引发控制流程的跳转，用于函数和方法的退出。
+
+函数和方法的调用也能引发程序控制流的跳转，
+
+第2章 函数
+p55
+
+
+
+
+
+ 
 
