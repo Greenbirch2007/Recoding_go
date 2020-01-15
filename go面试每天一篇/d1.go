@@ -1,28 +1,15 @@
 package main
 
-import "fmt"
+import  "fmt"
 
 
-type User struct{
-	name string
-	age int
+type T struct{
+	n int
 }
 
 
 func main(){
-	ma := make(map[int]User)
-andes := User{
-	name:"andes",
-	age:18,
-
-}
-
-ma[1] = andes
-// ma[1].age = 19 
-
-andes.age = 19
-
-ma[1] = andes //必须整体替换value
-
-fmt.Printf("%v\n",ma)
+	m := make(map[int]T)
+	m[0].n = 1
+	fmt.Println(m[0].n)
 }
