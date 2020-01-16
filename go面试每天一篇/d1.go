@@ -1,35 +1,55 @@
 package main
 
-import  "fmt"
+import "fmt"
 
-type data struct{
-	*sync.Mutex // *Mutex
+
+//匿名函数被直接赋值函数变量
+
+
+var sum = func(a,b int) int{
+	return a+b
 }
 
 
-func (d data) test(s string){
-	d.Lock()
-	defer d.Unlock()
+func doinput(f func(int,int) int,a,b int)int {
+	return f(a,b)
+}
 
 
-	for i:=0;i<5;i++{
-		fmt.Println(s,i)
-		time.Sleep(time.Second)
+//匿名函数作为返回值
+
+func wrap(op string) func(int,int) int{
+	switch op{
+	case "add":
+		return func(a,b int)int {
+			return a+b
+		}	
+	case "sub":
+		return func(a,b int ) int{
+			return a+b
+		}	
+	default:
+		return nil	
 	}
 }
 
 func main(){
-	var wg sync.WaitGroup
-	wg.Add(2)
+	//匿名函数直接被调用
+	defer func(){
+		if err := recover(); err != nil{
+			fmt.Println(err)
+		}
+	}()
 
-	d := data{new(sync.Mutex)} // 初始化
-	go func(){
-		defer wg.Done()
-		d.test("read")
-	}()
-	go func(){
-		defer wg.Done()
-		d.test("write")
-	}()
-	wg.Wait()
+	sum(1,2)
+
+	//匿名函数作为实参
+
+	doinput(func(x,y int) int {
+		return x+y
+	},1,2)
+
+	opFunc := wrap("add")
+	re := opFunc(2,3)
+	fmt.Printf("%d\n",re)
 }
