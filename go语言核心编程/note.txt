@@ -1092,13 +1092,102 @@ GO提供两种函数：有名函数和匿名函数。匿名函数可以看作函
 
 2.6 defer
 
-p63
+Go函数里提供了defer关键字，可以注册多个延迟调用，这些调用以先进后出(FILO)
+的顺序在函数返回前被执行。这有点类似与Java语言中异常处理的finanly子句。
+defer常用于保证一些资源最终一定能够得到回收和释放
+
+
+defer后面必须是函数或方法的调用，不能是语句，否则会报expression　in defer
+must be function call错误
+
+defer函数的实参在注册时通过值拷贝传递进去。下面的代码，
+实参a的值在defer注册时通过值通过值拷贝传递金融区，后续
+a++并不会影响defer语句最后的输出结果
+
+func f() int{
+	a := 0
+	defer func(i int){
+		println("defer i=",i)
+	}(a)
+
+	a++
+	return a
+}
+
+//defer 打印结果
+defer i=0
+defer 语句必须先注册后才能执行，如果defer位于return之后，则defer因为
+没有注册，不会执行
+
+主动调用os.Exit(int)退出进程时，defer将不再被执行(即使defer
+已经提前注册)
+
+defer的好处是可以在一定程度上避免资源泄露，特别是在很多return语句，有多个资源需要关闭
+的场景中，很容易漏掉资源的关闭操作
+
+func CopyFile(dst,src string)(w int64,err error){
+	src,err := os.Open(src)
+	if err != nil {
+		return
+	}
+	dst, err := os.Create(dst)
+	if err != nil{
+		//src 很容易被忘记关闭
+		src.Close()
+		return
+	}
+	w. err = io.Copy(dst,src)
+	dst.Close()
+	src.Close()
+	return
+}
+
+
+使用defer改写后，在打开资源无报错后直接调用defer关闭资源，一旦
+养成这样的编程习惯，很难会忘记资源的释放
+
+
+func CopyFile(dst,src string)(w int64,err error){
+	src,err := os.Open(src)
+	if err != nil{
+		return
+	}
+	defer src.Close()
+
+	dst, err := os.Create(dst)
+	if err != nil{
+		return	
+	}
+	defer dst.Close()
+
+	w,err = io.Copy(dst,src)
+	return
+}
+
+
+defer语句额位置不当，有可能导致panic,一般defer语句放在错误检查语句之后，
+defer有明显的副作用：defer会推迟资源的释放，defer尽量不要放到循环语句里面，
+将大函数内部的defer语句单独拆分成一个小函数是一种好的策略
+
+另外，defer相对于普通的函数调用需要间接的数据结构的支持，
+相对于普通函数调用有一定的性能损耗
+
+
+defer中最好不要对有名返回值参数进行操作，否则报错
+
+
+２．４　闭包
+
+２．４．１　概念
+
+闭包是由函数及其相关引用环境组合而成的实体，一般通过在匿名函数中引用
+外部函数的局部变量或包全局变量构成
+
+闭包＝函数＋引用环境变量
+
+闭包对闭包外的环境引入是直接引用，编译器检测到闭包，会将闭包引用的外部比那里份额
 
 
 
 
-
-
-
- 
 
