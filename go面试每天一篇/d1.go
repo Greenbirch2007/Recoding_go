@@ -1,28 +1,15 @@
 package main
 
-
 import "fmt"
-
-
-//使用type声明的是命名类型
-
-type Person struct{
-	name string
-	age int
-}
-
+import "runtime"
 
 func main(){
-	//使用struct字面量声明的是未命名类型
-	a := struct{
-		name string
-		age int
-	}{"andes",18}
-	fmt.Printf("%T \n",a)
-	fmt.Printf("%v\n",a)
-	
-	b := Person{"tom",21}
-	fmt.Printf("%T\n",b)
-	fmt.Printf("%v\n",b)
+	runtime.GOMAXPROCS(1)
+	go func(){
+		for i :=0;i <20;i++{
+			fmt.Println(i)
+		}
+	}()
 
+	for {}
 }
