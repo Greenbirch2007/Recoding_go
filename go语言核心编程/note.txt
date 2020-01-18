@@ -1452,8 +1452,24 @@ fmt.Printf("%T\n",c)
 
 ３．２．１　自定义方法
 
-p95
+自定义类型。用户自定义类型使用关键字type,其语法格式是type newtype oldtype
 
+
+
+自定义struct类型
+
+
+struct XXXname struct{
+	Field1 type1
+}
+
+
+type errorString struct{
+	s string
+｝
+
+struct　初始化
+p96 
 
 
 
