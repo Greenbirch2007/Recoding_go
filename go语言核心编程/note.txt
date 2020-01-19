@@ -1469,7 +1469,319 @@ type errorString struct{
 ｝
 
 struct　初始化
-p96 
 
+
+type Person struct{
+	name string
+	age int
+}
+
+(1) 按照字段顺序进行初始化
+
+
+a : = Person{"name",18}
+
+b := Person{
+	"andes",
+	18,
+	}
+
+
+c := Person{
+	"andes",
+	18}
+
+
+(2) 指定字段名进行初始化
+
+a : = Person{name:"andes",age:18}
+
+
+如果"}"独占一行，则最后一个字段的后面一定要带上逗号
+
+(3) 使用new创建内置函数，字段默认初始化为其类型的零值，
+返回值是指向结构的指针
+
+p := new(Person)
+
+//此时name为"",age是0
+
+
+一般使用struct都不会将所有字段初始化为零值
+
+(4) 一次初始化一个字段
+
+(5) 使用构造函数进行初始化
+
+
+当结构发生变化时，构造函数可以屏蔽细节
+
+func New(text string) error{
+	return &errorString{text}
+}
+
+
+type errorString struct{
+	s string}
+
+
+
+结构字段的特点
+
+
+结构的字段你可以是任意的类型，基本类型，接口类型，
+指针类型，函数类型都可可以作为struct的字段
+
+结构字段的类型名必须唯一，struct字段类型可以是普通类型，
+也可以是指针，另外，结构支持内嵌自身的指针，这也是
+实现树形和链表等复杂数据结构的基础
+
+
+//标准库　container/list
+
+
+type Element struct{
+	//指向自身类型的指针
+	next,prev *Element
+	list *List
+	Value interface{}
+}
+
+
+匿名字段
+
+在定义struct的过程中，
+
+
+// 标准库${GOROOT}/src/os/type.go 内的一个匿名的指针字段
+type File struct{
+	*file //os specfilec
+}
+
+
+var i interface{}
+
+自定义接口类型
+
+
+
+
+// Reader是自定义接口类型，属于命名类型
+
+type Reader interface{
+	Read(p []byte) (n int,err error)
+}
+
+
+3.2.2 方法
+
+
+go语言的类型方法是一种对类型行为的封装。
+其显式地将对象实例或之后怎作为函数的第一个参数，
+并且参数名可以自己指定，而不强制要求一定是this或self.
+这个对象实例或指针称为方法的接收者(reciever)
+
+
+// 类型方法接收者是值类型
+
+func(t TypeName)MethodName(ParamList)(Returnlist){
+	//method body 
+}
+
+
+//类型方法接收者是指针
+
+func (t *TypeName)MethodName(ParaList)(Returnlist){
+	//method body}
+
+
+Go语言的而理性方法
+
+
+go语言的类型方法本质上就是一个函数，没有使用隐式的指针
+
+类型方法的特点
+
+(1) 可以为命名类型增加方法(除了接口)，非命名类型不能自定义方法
+
+(2) 为类型增加方法有一个心智，就是方法的定义必须和类型的定义在同一个包中
+
+(3) 方法的命名空间的可见性和变量一样，大写开头的方法可以在包外
+被访问，否则只能在包内可见
+
+(4) 使用type定义的自定义类型是一个新类型，新类型不能调用原有类型的
+方法，但是底层累心支持的运算可以被新类型继承
+
+
+
+
+3.3  方法调用
+
+类型方法本质上是函数，只是采用了一种特殊的语法书写
+类型方法咋调用上也很灵活，
+
+调用方法，方法集，方法变量和方法表达式
+
+
+３．３．１　一般调用
+
+
+类型方法的一般调用方式
+
+
+TypeInstanceName.MethodName(ParamList)
+
+TypeInstanceName:类型实例名或指向实例的指针变量名
+MethodName：类型方法名
+ParamList：方法实参
+
+type  T struct{
+	a int
+}
+
+func (t T ) Get() int{
+	return t.a
+}
+
+
+func (t *T)Set (i int){
+	t.a = i
+}
+
+
+var t = &T{}
+
+//普通方法调用
+
+t.Set(2)
+
+
+//普通方法调用
+
+t.Get()
+
+
+3.3.2 方法值(method value)
+
+
+变量x的静态类型是T,M是类型T的一个方法，x.T被称为方法值(method value)
+x.T是一个函数类型变量，可以赋值给其他变量，并像普通的函数名一样使用
+
+
+f := x.M
+f(args...)
+
+
+等价于
+x.M(args...)
+
+
+方法值(method value)其实是一个带有闭包的函数变量，其底层实现
+原理和带有闭包的匿名函数类似，接收者被隐式地绑定到方法值(method value)
+的闭包环境中。
+后续调用不需要再显地传递接收者
+
+type T struct{
+	a int
+}
+
+
+func (t T) Get() int{
+	return t.a
+}
+
+func (t *T) Print(){
+	fmt.Printf("%p, %v,%s \n",t,t,t.a)
+}
+var t = &T{}
+
+
+//method value
+
+
+f := t.Set
+
+
+//方法值调用
+
+f(2) 
+t.Print()
+
+//方法值调用
+
+f(3)
+t.Print()
+
+3.3.3 方法表达式(method expression)
+
+
+方法表达式相当于提供一种语法将类型方法调用
+显式地转换为函数调用，接收者(receiver)
+必须显式地传递进去。下面定义一个类型T,增加两个方法，方法Get的接收者
+为T,方法Set的接收这类型为*T
+
+
+type T struct {
+	a int
+}
+
+func (t *T) Set(i int) {
+	t.a = i
+}
+
+
+func (t T) Get() int{
+	return t.a
+}
+
+
+func (t *T) Print(){
+	fmt.Printf("%p. %v, %d \n",t,t,t.a)
+}
+
+
+
+表达式T.Get和(*T).Set被称为方法表达式(method expression)
+方法表达式可以看作函数名，只不过这个函数的首个参数是接收着的实例或指针。
+T.Get的函数签名是func(t T)int,(*T).Set的函数前面是func(t *T,i int)
+注意，这里的T.Get不能携程(*T).Get
+(*T).Set也不能写成T.Set,在方法表达式中编译器不会做自动转换，，
+
+//如下方法表达式调用都是等价的
+
+
+t := T{a:1}
+
+
+//普通方法调用
+
+
+t.Get(t)
+
+
+
+//方法表达式调用
+(T).Get(t)
+
+//方法表达式调用
+
+f1 := T.Get;f1(t)
+
+//方法表达式调用
+f2 := (T).Get;f2(t)
+
+
+//如下方法表达式调用都是等价的
+
+(*T).Set(&t,1)
+f3 := (*T).Set;f3(&t,1)
+
+
+通过方法值和方法表达式可以看到：go的方法底层是基于函数实现的，
+只是语法格式不同，本质是一样的
+
+3.3.4 方法集(method set)
+
+p105
 
 
