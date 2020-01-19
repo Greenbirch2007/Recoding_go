@@ -1,15 +1,20 @@
 package main
 
-import "fmt"
-import "runtime"
+import _ "fmt"
+
+
+
+func alwaysFalse() bool{
+	return false
+}
+
 
 func main(){
-	runtime.GOMAXPROCS(1)
-	go func(){
-		for i :=0;i <20;i++{
-			fmt.Println(i)
-		}
-	}()
-
-	for {}
+	switch alwaysFalse()
+	{
+	case true:
+		println(true)	
+	case false:
+		println(false)	
+	}
 }

@@ -1,0 +1,35 @@
+Go操作MySql数据库的2种方式
+
+
+https://mp.weixin.qq.com/s?__biz=MzI5ODQ2MzI3NQ==&mid=2247487669&idx=2&sn=e266833d37611767829c74e9a89e68dd&chksm=eca429f1dbd3a0e7c7577bd4d5355f0af29cb7df216e163e01fdc0320dd4d80ed9b4262bc5eb&mpshare=1&scene=1&srcid=01188NacJ65FxO9clOrSgc0G&sharer_sharetime=1579361353195&sharer_shareid=5baeb4516dc33f60573dd0b37ccd54cf&exportkey=AZT0OJlCi5FBvRu4FG9g660%3D&pass_ticket=paHuFVlQHeSqgp7CFMv00dmazKWwJ7euOYYNZ1NO8eIa116La6X1pbeMkKCipe86#rd
+
+
+go操作mysql数据库有两种方式:
+1.使用database/sql接口，直接在代码里硬编码sql语句
+
+2. 使用gorm,即对象关系映射的方式在代码里抽象的操作数据库。
+一般推荐使用第二种方式
+
+使用database/sql接口
+
+Go没有内置的驱动支持任何数据库，但是Go定义了database/sql接口，
+用户可以基于驱动接口开发相应数据库的驱动，但是
+但缺点是，直接用github.com/go-sql-driver/mysql访问
+数据库都是直接写sql,取出结果然后自己拼成对象，使用上面不方面吧可读性也不是很好
+
+下载包
+
+go get github.com/go-sql-driver/mysql
+
+安装好mysql驱动之后，我们创建一个user表，并执行CRUD操作(增删改差)
+
+
+使用GORM (Object Relation Mapping)，即Go语言中的对象关系映射，实际上是对
+数据库的操作进行封装，对上层开发人员屏蔽数据操作的细节，
+开发人员看到的就是一个个对象，大大简化了开发工作，提高了生产效率。
+如GORM结合Gin等服务端框架爱可以开发出丰富的Rest API
+
+
+
+
+
