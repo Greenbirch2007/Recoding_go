@@ -1,41 +1,22 @@
 package main
 
-
-import "fmt"
-
-
-type Int int
-
-func (a Int) Max(b Int) Int{
-	if a>b{
-		return a
-	}else{
-		return b
-	}
+type Printer interface{
+	Print()
 }
 
+type S struct{}
 
-func (i *Int) Set(a Int){
-	*i =a
+
+func (s S) Print(){
+	println("print")
 }
 
-func (i Int) Print(){
-	fmt.Printf("value=%d\n",i)
-}
 
 func main(){
-	var a Int = 10
-	var b Int =20
-	
-	c := a.Max(b)
-	c.Print() //value=50
+	var i Printer
 
-	(&c).Print() //value=50,内部被编译器转换为c.Print()
-
-	a.Set(20) //内部被编译器转化为(&a).Set(20)
-	a.Print() // value=20
-	(&a).Set(30)
-
-
-	a.Print)// value=30
+	//没有初始化的接口调用其方法会产生panic
+	//必须初始化
+	i = S{}
+	i.Print()
 }
