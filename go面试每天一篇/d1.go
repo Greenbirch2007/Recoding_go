@@ -1,61 +1,48 @@
 package main
 
 
-import (
-	"fmt"
-	"time"
-)
+import  "fmt"
+import "sync"
 
-
-//一个查询结构体
-// 这里的sql和result是一个简单的抽象，具体的应用可能是更复杂的数据类型
-
-
-type query struct{
-	//参数Channel
-	sql chan string
-
-	// 结果Channel
-	result chan string
-
+type UserAges struct{
+	ages map[string]int
+	sync.Mutex
 }
 
+func (ua *UserAges) Add(name string,age int){
+	ua.Lock()
+	defer ua.Unlock()
+	ua.ages[name] = age
+}
 
-//执行Query
-
-func execQuery(q query){
-	//启动线程
-
-	go func(){
-		//获取输入
-		sql := <- q.sql
-
-		//访问数据库
-
-		//输出结果通道
-		q.result <- "result from" + sql
-	}()
+func (ua *UserAges) Get(name string)int{
+	if age,ok := ua.ages[name];ok{
+		return age
+	}
+	return -1
 }
 
 
 func main(){
-	// 初始化Query
-	q := query(make(chan string,1),make(chan string,1))
-	//执行Query,注意执行的时候无须准备参数
+	count := 1000
+	gw := sync.WaitGroup{}
+	gw.Add(count*3)
+	u := UserAges{ages:map[string]int{}}
+	add := func(i int){
+		u.Add(fmt.Sprintf("user_%d",i),i)
+		gw.Done()
+	}
 
-	go execQuery(q)
-
-	//发送参数
-	q.sql <- "select * from table"
-
-	//做其他事情，通过sleep描述
-
-
-	time.Sleep(1 * time.Second)
-
-	//获取结果
-
-	fmt.Println(<-q.result)
+	for i:=0;i < count;i++{
+		go add(i)
+		go add(i)
+	}
+	for i := 0;i<count;i++{
+		go func(i int){
+			defer gw.Done()
+			u.Get(fmt.Sprintf("user_%d".i))
+		}(i)
+	}
+	gw.Wait()
+	fmt.Println("Done")
 }
-
-
