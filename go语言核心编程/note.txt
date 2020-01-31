@@ -3004,9 +3004,196 @@ context库的设计目录就是跟踪goroutine调用树，并在这些goroutine
 
 5.3.2 基本数据结构
 
-p180
+先理解context包的整体工作机制：第一个创建Context的goroutine被称为root节点。root节点负责创建一个实现Context接口的具体对象，并将该对象作为参数
+传递到其新拉起的goroutine,下游的goroutine可以继续封装该对象，再传递到
+更下游的goroutine
+
+Context对象在传递的过程中最终形成一个树状的数据结构，这样通过位于root结点
+(树的根节点)的Context对象就能遍历整个Context对象树，通知和消息就可以通过
+root结点传递出去，实现了上游goroutine对下游goroutine的消息传递
+
+
+Context接口
+
+Context是一个基本接口，所有的Context对象都要实现该接口，context的使用者
+在调用接口中使用Context作为参数类型
+
+
+type Context interface{
+	//如果Context　实现了超时控制，则该方法返回ok true,deadline为超时实现
+	// 否则 ok为false
+
+
+	Deadline() (deadline time.Time,ok bool)
+
+	// 后端被调的goroutine应该监听该方法的返回的chan,一便及时释放资源
+
+	Done() <-chan struct{}
+
+	//Done 返回的chan收到通知的时候，才可以访问Err()获知因为什么原因被取消
+	Err() error
+
+	//可以访问上游goroutine传递给下游goroutine的值
+
+	Value (key interface{}) interface{}
+
+}
+
+
+canceler 接口
+
+
+canceler 接口是一个扩展接口，规定了取消通知的Context具体类型需要实现的接口
+
+context包中的具体类型*cancelCtx 和*timerCtx都实现了该接口
+
+//一个context对象如果实现了canceler接口，则可以被取消
+
+
+type canceler interface{
+	//创建cancel接口实例的goroutine调用cancel方法通知后续创建的goroutine退出
+	cancel(removeFromParent bool,err error)
+	// Done方法返回的chan需要后端goroutine来监听，并及时退出
+	Done() <-chan struct{}
+
+}
+
+
+13190191933
+empty Context结构
+
+
+emptyCtx 实现了Context接口，但不具备任何功能，因为其所有的方法都是空实现。
+其存在的目的是作为Context对象树的根(root节点)
+因为context包的使用思路就是不停地调用context包提供的包装函数来创建
+具有特殊功能的Context实例，每一个Context实例的创建都以上一个Context对象
+为参数，最终形成一个树状的结构
+
+
+//emptyCtx实现了Context接口
+
+
+type emptyCtx int
+
+func (*emptyCtx) Deadline() (deadline time.Time,ok bool){
+	return
+}
+
+
+func (*emptyCtx) Done() <-chan struct{}{
+	return nil
+}
 
 
 
+func (*emptyCtx) Err() error {
+	return nil
+}
+
+
+
+func (*emptyCtx) Value(key interface{}) interface{}{
+	return nil
+}
+
+
+
+package 定义了两个全局变量和两个封装函数，返回两个emptyCtx实例对象，实例
+使用时通过调用这两个封装函数来构造Context的root节点
+
+
+cancelCtx 是一个实现了Context接口的具体类型，同时实现了conceler接口
+
+
+conceler具有退出通知方法。注意退出通知机制不但能通知自己，也能逐层通知其children节点
+
+
+timerCtx 是一个实现了Context接口的具体类型，内部封装了cancelCtx类型实例，
+同时有一个deadline变量，用来实现定时退出通知
+
+valueCtx　是一个实现了Context接口的具体类型，内部封装了Context接口类型，
+同时封装了一个k/v的存储变量。valueCtx可用来传递通知信息
+
+
+5.3.3 API函数
+
+下面这两个函数是构造Context取消树的根节点对昂，根节点对象用作后续With
+包装函数的实参
+
+
+func Background() Context
+func TODO() Context
+
+
+
+Ｗith 包装函数用来构建不同功能的Context具体对象
+(1) 创建一个带有退出通知的Context具体对象，内部创建一个cancelCtx的类型实例
+(2) 创建一个带有超时通知的Context具体对象，内部创建一个timerCtx的
+类型实例。
+
+(3) 创建一个带有超时通知的Context具体对象，内部创建一个timerCtx的类型实例，
+(4) 创建一个能够传递数据的Context具体对象，内部创建一个valueCtx的类型实例
+
+
+
+这些函数都有一个共同的特点－parent参数，其实这就是实现Context通知树的必备条件
+
+在goroutine的调用链中，Context的实例被逐层地包装并传递，每层又可以对传进来
+的Context实例再封装自己所需的功能，整个调用树需要一个数据结构来维护，
+这个维护逻辑在这些包装函数内部实现
+
+
+5.3.4 辅助函数
+
+
+5.3.5 context的用法
+
+context包的一般流程
+
+(1) 创建一个Context根对象
+(2) 包装上一步创建的Context对象，使其具有特定的功能
+(3) 将上一步创建的对象作为实参传给后续启动的并发函数(通常作为函数的第一个函数)
+每个并发函数内部可以继续使用包装函数对传进来的Context对象进行包装，
+添加自己所需的功能
+(4) 顶端的goroutine在超时后调用cancel退出通知函数，通知后端的所有goroutine
+释放资源
+
+(5) 后端的goroutine通过select监听Context.Done()返回的chan,及时响应前端
+goroutine的退出通知，一般停止本次处理，释放所占用的资源
+
+
+5.3.6 使用context传递数据的争议
+
+要清楚使用context包主要是解决goroutine的通知退出，传递数据是其一个额外
+功能。可以使用它传递一些元信息，总之使用context传递的信息不能影响
+正常的业务流程，程序不要期待在context中传递一些必需的参数等
+
+没有这些参数，程序也应该能正常工作
+
+
+在context中传递数据的坏处
+
+
+1. 传递的都是interface{}类型的值，编译器不能进行严格的类型校验
+2. 从interface{}到具体类型需要使用类型断言和接口查询，有一定的
+运行期开销和性能损失
+3. 值在传递过程中有可能被后续的服务覆盖，且不易被发现
+4. 传递信息不简明，比较晦涩；不能通过代码或文档一眼看到传递的是什么，
+不利于后续维护
+
+context 应该传递什么数据
+
+1. 日志信息
+２．　调试信息
+３．　不影响业务主逻辑的可选数据
+
+
+context包提供的核心的功能是多个goroutine之间的退出通知机制，传递数据
+只是一个辅助功能，应谨慎使用context传递数据
+
+
+5.4 并发模型
+
+p194
 
 	
