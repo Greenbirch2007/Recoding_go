@@ -1,0 +1,184 @@
+Go Map
+
+
+https://mp.weixin.qq.com/s?__biz=MzI2MDA1MTcxMg==&mid=2648466739&idx=2&sn=44a35b80cd64b30305a08050629696b2&chksm=f247435cc530ca4a847567150a029a08346614356bb70c27d27f8bd54136b1c8466403af82bb&scene=21#wechat_redirect
+
+Hash表是一种实用的数据结构，是一个无序的key/value对的集合，其中所有的
+
+key都是不同的，通过给定的key可以在常数时间复杂度内检索，更新或删除对应的value
+
+Map其实是一个Hash表的引用，能够基于键快速检索出数据，键就像索引一样指向
+与该键关联的值
+Map存储的是无序的键值对集合
+
+创建与初始化
+
+
+使用Make函数
+
+make可以创建切片，也可以用来创建Map
+
+m := make(map[keyType]valueType)
+
+
+month := make(map(string)int)
+
+
+month["J"] =1
+
+
+上面创建了key类型为string,value类型为int的空Map month,
+接着，给month赋值键值对
+
+
+使用字面量
+
+可以采用字面量的方式
+
+month := map[string]int{"J":1}
+
+使用字面量也可以创建空Map,大括号里面不赋值就可以了
+
+month := map[string]int{}
+
+fmt.Println(month) //输出:map[]
+
+有空Map,也有nil的Map
+
+var month map[string]int
+fmt.Println(month==nil) // 输出:true
+
+
+对于nil的map是不能存取键值对的，佛足额会报错
+
+可以使用提到的make函数，为其初始化
+
+var month map[string]int
+month = make(map[string]int)
+month["J"]= 1
+fmt.Println(month) //输出map[J:1]
+
+
+
+Map的零值就是nil,Map就是底层Hash表的引用
+Map的key可以是内置类型，也可以是结构类型，只要可以使用==运算符
+作比较，都可以作为key.切片，函数以及包含切片的结构类型，这些类型由于具有引用
+语义，不能作为key,使用这些类型会造成编译错误
+
+month := map[[]string]int{}
+
+对于Map的value来说，就没有类型限制，当然也米有任何理由阻止用户使用切片作为
+Map的值
+
+
+m := map[string]int{}
+
+m["J"] = 1 //赋值
+fmt.Println(m) //输出: map[J:1]
+m["J"] =10 // 修改
+fmt.Println(m) //输出：map[J:10]
+january := m["J"] //获取value
+fmt.Println(january) //输出:10
+
+执行修改操作的时候，如果key已经存在，则新值会覆盖旧值，所以key是不允许重复的
+获取一个不存在的key的value的时候，会返回值类型对应的零值
+判断是存在一个值的零值的键值对还是键值对就根本不存在。Map有一个方法
+
+f,exists := m["F"]
+fmt.Println(f,exists) //输出0 false
+
+
+获取值的时候多了一个返回值，第一个返回值是value,第二个返回值boolean类型
+变量，表示value是否存在。这个给我们判断一个key是否存在提供了便利
+
+Delete --删除键值对
+
+
+不像Slice,Go为我们提供了删除键值对的功能－－delete函数
+
+
+函数原型：
+
+func delete(m map[Type]Type1, key Type)
+
+
+第一个参数是Map,第二个参数是key
+
+m  := map[string]int{
+	"J":1,
+}
+
+fmt.Println(m)
+delete(m,"J")
+fmt.Println(m)
+
+
+删除一个不存在的键值对，delete函数不会报错，没任何作用
+
+
+遍历Map
+
+Map没法使用for循环遍历，跟数组，切片一样，可以使用range 遍历
+for key,value := range m {
+	fmt.Println(key,"=>",value)
+}
+
+
+
+可以使用空白操作符_忽略返回的key或value.
+多次执行代码的时候，你会发现，返回值的顺序有可能是不一样的，也就是Map的遍历是无序的
+
+
+len函数
+
+可以使用len函数返回Map中键值对的数量
+
+
+
+
+
+fmt.Println("len(m)=",len(m))
+
+
+Map是一种引用类型
+
+Map是底层数据的引用。编写代码的过程中，会涉及到Map拷贝，函数间传递Map等
+跟Slice类似，Map指向的底层数据是不会发生copy的
+
+m := map[string]int{
+	"J":1,
+}
+
+month := m
+delete(month,"F")
+fmt.Println(m)
+fmt.Println(month)
+
+
+将Map m赋值给month,删除了month中的一个键值对，m也发生了改变，说明Map
+
+拷贝时,m和month是共享底层数据的，改变其中一方数据，另一方也会随之改变。
+在函数间传递Map时，其实传递的是Map的引用，不会涉及底层数据的拷贝，如果在
+被调用函数中修改了Map,在调用函数中也会感知到Map的变化
+
+
+month := map[string]int{}
+
+m := map[string]int{
+	"J":1,
+}
+
+
+for key,value := range m{
+	month[key] =value
+}
+
+
+delete(month,"F")
+fmt.Println(m)
+fmt.Println(month)
+
+
+使用range 将m的键值对循环赋值给month,然后删除month其中的一个键值对
+
+
