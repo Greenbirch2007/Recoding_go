@@ -1,19 +1,10 @@
 package main
 
 import "fmt"
-import "flag"
-
-
-var ip string
-var port int
-
-
-func init(){
-	
-}
-
 
 func main(){
-	flag.Parse()
-	fmt.Printf("%s:%d",ip,port)
+	s := []int{1,2,3,4,5}
+	for i,v := range s{
+		fmt.Println("v:%d,v_addr:%p,elem_addr:%p\n",v,&v,&s[i])
+	}
 }
