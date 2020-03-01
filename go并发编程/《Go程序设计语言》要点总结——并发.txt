@@ -1,0 +1,339 @@
+《Go程序设计语言》要点总结——并发
+
+
+go g
+
+https://mp.weixin.qq.com/s?__biz=MzU4ODAxODc1Mw==&mid=2247483754&idx=1&sn=d2bea81168868f447646c53a49a96b73&chksm=fde26444ca95ed5219ea5d40fdf57947c2ef9b1c3f717376c64ad59bff19dcd67e8eeaeacdcc&mpshare=1&scene=1&srcid=0227UsX7tHrTw2a7C7WbvJRb&sharer_sharetime=1582805107354&sharer_shareid=5baeb4516dc33f60573dd0b37ccd54cf&exportkey=AbZHsbZGT6oofvC5LxceVdo%3D&pass_ticket=IEGDSqyLY1eVWYIUP3Ws9WLg3weQKNKQvF41p5NQwZQvIO4jKQLwJOyqHgTbTwyi#rd
+
+
+在硬件发达的时代，并发编程(concurrent programming)变得很重要
+
+
+go在并发编程方面比大多数语言都方便
+
+１．gortouines
+
+
+
+go中没有多进程多线程的概念，只有协程(goroutine)的概念
+
+使用go关键字就可以启动一个goroutine，
+
+在main(main其实也是goroutine,类似主进程的概念)中创建了两个goroutine，和线程一样，goroutine一旦被创建就会立刻去执行．
+
+
+如果在goroutine返回前，main就结束的话，那些子goroutine也会被强制退出
+
+
+上面的程序中，为了保证main退出前两个goroutine执行完毕，在main中调用了sleep
+当然这样不能绝对保证goroutine之间的先后顺序，
+
+下面介绍一种可靠的机制来直线多个goroutine之间的先后顺序
+
+２．　channels
+
+
+我们知道进程间通信和线程间通信有很多方法
+
+goroutine之间如何通信呢？
+
+就是用channel(信道)
+
+先介绍一下channel,再看如何利用channel在不同goroutine之间通信
+
+
+channel有以下要点
+
+１．声明一个channel使用关键字chan,后面跟这个channel里面所传递的对象类型
+创建channel使用make
+
+
+ch := make(chan int) // chan has type 'chan int'
+
+
+上面创建了一个(只能)传递int类型元素的channel
+
+channel 只要有三个操作
+
+1.send 比如ch <- x 表示将x发送到ch
+2. receive  比如 x= <- ch 表示从ch中接收值并赋给变量x
+3.close 我们可以使用close函数关闭一个channel:close(ch)
+
+当一个channel被关闭的时候，表示不会再有数据发送到这个channel上面
+如果向一个已经关闭的channel发送数据，将导致panic
+
+如果从一个已经关闭的channel上面接收数据，会先将channel上面残留的数据全部
+接收，后面再接收时会收到该channel类型的零值
+
+
+channel是引用类型的．相同类型的channel可以使用==记性比较，如果它们引用了相同的数据结构，则结果为真，否则为假
+
+
+channel的零值是nil,在一个为nil的channel上面执行send或receive将永远阻塞
+
+
+make创建channel时，可以接收第二个参数，表示创建一个容量为指定值的channel
+
+
+ch = make(chan int)
+ch = make(chan int,0)
+ch = make(chan int,3)
+
+
+上面的例子，前两行创建的channel称为Unbuffered Channel，最后一句创建的channel称为Buffered Channel,
+
+２．１　Unbuffered Channel（同步信道）
+
+
+假设ch是一个Unbuffered Channel,那么我在goroutine A中向ch中发送数据时，
+A会一直被阻塞，直到有另外一个goroutine从ch中读取数据，A才会继续往下执行．
+同理，如果A从ch读取数据，那么A会一直被阻塞，直到有另外一个goroutine向ch中
+发送数据．所以可以看到，通过Unbuffered Channel,可以实现两个进程的同步(synchronize),所以Unbuffered Channel有时也被称为同步信道(synchronous channels)
+
+
+在Main　goroutine中从ch中接收数据，在Sub goroutine中发送数据，可以看到收发
+是同步的．(在收发中sleep 1毫秒是因为CPU的执行速度远远大于IＯ速度，当我们
+从ch接收数据后，发送端就不再阻塞，就可以马上再次发送，并且打印日志，
+但是此时接收端可能还在打印输出，所以可能最终的打印就会有些错位，没有那么
+直观，所以我们增加一个sleep来消除这个问题)
+
+
+我们预先直到发送了10此，所以我们也就接收１０此，但如果我们不知道发送了多少次
+那接收端如何知道发送端是否已经发送结束了？
+提供了"comma,ok"机制
+
+从channel接收数据时，可以获得一个bool值，如果channel已经关闭并且
+已经没有数据可以再接收，那这个bool值就为false,否则为true,
+这样我们通过这个bool值就可以判断上面的情景了
+
+除此之外，还可以使用更加方便的range loop 来遍历channel,当channel
+里面的所有元素被读取完后，循环会自动退出
+
+
+1.channel使用完以后可以不用显式的关闭，程序结束时会自动关掉．
+但是如果想要告诉接收端所有数据已经发送完毕的话，就需要在所有数据发送后显式
+的关闭channel.
+但是关闭已经关闭的channel会导致panic
+
+
+2. 可以声明只用于发送(chan <- type,send-only channel)
+或只用于接收(<- chan type,receive-only chanenl)
+的channel，这在函数传参是很有用的
+这种的单向的channel称为Unidirectional Channel
+
+
+２．２　　Buffered Channel
+
+
+Buffered Channel有些像消息队列，其大小在使用make创建的时候由
+第二个参数指定．它和Unbuffered Channel的区别在于
+它没有被填满之前是非阻塞的，比如一个容量为100的Bufferd Channel
+我们可以一直往里面发送数据，在channel达到100个元素之前，发送
+是不会阻塞的．当满100后，发送就会被阻塞，
+此时，接收端接收一个，就可以再发送一个，接收端也是相同的道理
+
+只有当里面没有元素时才会阻塞
+
+
+我们可以使用len函数获取当前channel中元素的个数，可以使用cap函数获取channel的容量
+
+
+３．　select
+
+
+go也提供了多路复用机制－－select
+
+
+select{
+case 场景１：
+//
+case 场景２：
+
+default:
+	//
+}
+
+
+上面的每种场景都必须指定从某个channel读取数据或向某个channel发送数据
+(也就是说select是配合channel用的)
+
+
+１．没有default语句的情况下，select会一直阻塞到某个case可以处理，
+即成功发送或成功接收到数据．
+如果有多个case同时ready,就会随机从中选出一个进行处理
+select也可以不包含任何case，此时,select将永远阻塞
+
+
+２．　如果有default的话，select将是非阻塞的：
+如果所有的case都没有ready,将直接执行defaultYuju 
+
+
+
+
+４．锁
+
+
+锁是并发程序中必不可少的一部分，go的sync包提供了排他锁sync.Mutex和
+读写锁sync.RWMutex
+
+除此之外，还提供了一个保证函数只执行一次的函数sync.Once
+
+4.1 sync.Mutex
+
+
+
+
+排他所的使用很简单，利用sync.Mutex,我们可以保证同一时刻只有一个goroutinez
+可以访问临界区
+
+这里创建１００个goroutine,每个goroutine里面循环10000,每次都对a加１，
+抛开并发的概念，最终a的值应该是100*1000=100000
+
+但实际我们运行程序都会发现每次运行a的值都不一样，且都比1000000小
+这个就是因为100个goroutine并发执行的结果
+
+下面对操作a的地方都加上锁
+
+这样同一时刻只有一个goroutine可以操作a,便解决了并发的问题，多次运行
+程序a的值都是1000000
+当然程序执行的时间变长了
+
+sync.Mutex类型只有Lock和Unlock这两个函数，
+且默认值(零值)为unlock状态．
+Lock和Unlock必须成对
+
+
+4.2 sync.RWMutex
+
+
+sync.RWMutex为读写锁，读写锁就是对于临界区资源，可以多人同时去读，
+但同一时刻只能有一个人写
+
+即只存在两种状态：一个人或多个人读临界区资源，没有人写临界区资源
+只有１个人写临界区资源且无人读临界区资源
+
+简单说，读和读不互斥，但读和写互斥
+
+
+sync.RWMutex类型有四个主要函数(假设rw为sync.RWMutex类型的变量)
+
+1. rw.Lock() 锁住rw用于写，如果已经有人锁住rw,不论是读或写，则操作被阻塞
+2. rw.Unlock()　解锁rw,只能与rw.Lock配合使用
+3. rw.RLock() 锁住rw用于读
+4. rw.RUlock() 解锁rw,只能与rw.RLock配合使用
+
+关于读写锁，需要注意必须配合使用，即Lock和Unlock成对使用(读)
+RLock和RUlock成对使用　(写)
+
+
+前３个goroutine都很申请的是读锁，所以它们几个是可以同时进入临界区的，
+而后三个申请的是写锁，它们要进入临界区的条件是没有任何人在临界区中，且
+它进入临界区后，其他所有人都不能再进入临界区
+
+关于go的两种锁(排它锁和读写锁)
+
+
+１．只有加锁后才可以解锁，否则将导致运行时错误(runtime error)
+比如，如果一个锁mu(排他锁)或rw(读写锁)并没有调用过Lock/RLock
+
+我们就在上面调用Unlock/RUlock的话
+将导致运行时错误，所以锁必须成对使用
+２．　锁虽然必须成对使用
+但是在这个goroutine中加锁后，在另外一个goroutine里面解锁
+
+即锁状态不是和goroute绑定
+
+４．３ sync.Once
+
+
+这个锁典型的使用场景是:我们有一个程序有许多goroutine,但他们都共享了一个
+全局资源，这个资源可以由任意一个且只能有一个goroutine初始化，而且这个初始化
+一般还是比较耗时的
+这种情况下，我们就可以将初始化的动作写成一个函数，然后使用这个所调用这个函数
+那么这个函数将只被执行一次}{
+
+
+有一个例子，有一个全局的map,里面记录了图标和图标所对应的图片，程序
+(该程序包含多个goroutine)启动时，任意一个goroutine需要检查这个map
+是否已经被初始化，若干没有，就初始化这个map,但是因为图片很多，初始化
+动作比较慢，因为map是个全局资源，这个初始化动作只能由一个goroutine
+去完成
+
+我们声明了一个sync.Once变量，该类型有一个函数Do,其参数为一个不带任何参数，
+也没有返回值的函数．它的特性是：如果有多个人调用xxx.Do(f),那么只有第一个调用的
+人执行函数f.对于这种场景，我们在其他语言中的，我们一般是使用一个排他锁去实现，
+go中的sync.Once底层实现也是借助排它锁和一个无符号整数变量实现的
+
+
+
+func (o *Once) Do(f func()){
+	if atomic.LoadUint32(&o.done) == 1{
+		return
+}
+	o.m.Lock()
+	defer o.m.Unlock()
+	if o.done == 0{
+		defer atomic.StoreUint32(&o.done,1)
+		f()
+
+}}
+
+
+5.Goroutine和Thread
+
+
+其实Goroutine和Thread几乎没有区别
+看看二者微观的区别
+
+５．１　栈(stack)的区别
+
+os的thread都有一个固定大小的栈，一般为2MB
+而goroutine的栈是可变大小的，一般初始值2KB,随着使用可以动态扩展，
+最大可至1GB
+
+1.一般的线程可能不到2MB大小的栈，这对于资源是一个浪费，
+限制了系统thread的个数．而goroutine栈初始值为2KB,很节省资源
+２．对于一些深递归函数，2MB的栈空间很可能不够用，栈溢出导致段错误
+而goroutine的栈大小是动态调整的．所以总体而言，goroutine栈大小
+的机制对于资源利用的更加充分
+
+
+５．２　调度的区别
+
+thread是系统级别的，是由内核负责调度的．线程切换是需要进行上下文切换(context switch),而且需要更新调度器的数据结构．
+这个切换过程是比较缓慢的(当然线程级的切换比进程切换还是快不少)
+其中可能还涉及CPU与内存的结构(可了解CPU与内存的亲和性)
+
+而goroutine是应用级的，是有goroutine自己的调度器调度的(使用的是"m:n scheduling算法")
+
+首先它是应用级的，所以多个goroutine之间的切换比thread之间的切换更加轻量级，
+因为不涉及内核级别的上下文切换．而且它的调度算法也尽量避免了goroutine
+在多个CPU核之间的切换，有点类似于进程／线程绑核后的效果
+
+
+一般如果一个机器有N个CPU,那goroutine的调度器会一次将go程序运行在N个
+thread上面，也可以使用GOMAXPROCS来指定我们要使用的cpu核数
+(不能超出机器实际的核数)
+
+
+系统底层依旧是thread,但goroutine有自己的调度器，这个调度器会起n(n
+为GOMAXPROCS的值或CPU的核数)个thread
+
+然后它会将go程序分布在这n个thread上去执行，且保证同一个goroutine
+以及相关的代码一直只在一个thread上运行，
+这样就可以尽量避免内核级别的线程切换提高了效率
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
