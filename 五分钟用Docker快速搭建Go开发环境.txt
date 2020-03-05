@@ -1,0 +1,27 @@
+
+五分钟用Docker快速搭建Go开发环境
+
+
+https://mp.weixin.qq.com/s?__biz=MzUzNTY5MzU2MA==&mid=2247484127&idx=1&sn=f5286405728b2d4f657e16cfdb6f07cc&chksm=fa80d348cdf75a5e1f95fdfb3a0d703cee59d6560e5b377f3a0bfe6770ca7bf236eadb0a7e44&mpshare=1&scene=1&srcid=0302KoQuzMQmibcKYFkJBxKH&sharer_sharetime=1583140958488&sharer_shareid=5baeb4516dc33f60573dd0b37ccd54cf&exportkey=AZhYAzIl4vg%2B2HZCoclxprk%3D&pass_ticket=wbC0f0A3SGdlJGg%2B5RDRMiTh5r9ebF1WYP5kzivruYx84Ua0lfXekYGO26AsjjeB#rd
+
+
+go本身自带的标准库就能实现高性能的HTTP服务器，
+使用docker构建go开发环境要简单很多
+
+
+获取docker 镜像
+
+
+使用最新的稳定版镜像golang:latest
+
+
+docker pull golang
+
+下载完镜像后用镜像运行一个容器：
+
+
+docker run --rm -it --name go-http-demo golang bash
+
+用镜像golang创建一个名为go-http-demo的容器，在容器中创建了一个bash会话．
+
+--rm选项
